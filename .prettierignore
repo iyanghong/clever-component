@@ -1,0 +1,17 @@
+dist
+node_modules
+*.lock
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+.DS_Store
+.vscode
+.idea
+*.log
+*.tgz
+*.tar.gz
+coverage
+.nyc_output
+.cache
+.temp
+.tmp

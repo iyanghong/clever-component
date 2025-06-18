@@ -1,0 +1,20 @@
+{
+  "name": "@clever-component/docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "dependencies": {
+    "vue": "^3.3.0",
+    "naive-ui": "^2.35.0"
+  },
+  "devDependencies": {
+    "vitepress": "^1.0.0",
+    "@vitejs/plugin-vue": "^4.5.0",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,29 @@
+packages:
+  - 'packages/*'
+  - 'play'
+  - 'docs'
+  - 'scripts'
+
+# 共享依赖配置
+sharedWorkspace:
+  - 'vue'
+  - 'naive-ui'
+  - '@vitejs/plugin-vue'
+  - 'typescript'
+  - 'vite'
+
+# 依赖提升配置
+hoist-pattern:
+  - '*eslint*'
+  - '*prettier*'
+  - '*typescript*'
+  - '*vite*'
+  - '*vue*'
+  - '*naive-ui*'
+
+# 忽略的包
+ignore:
+  - '**/.git/**'
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/coverage/**'
