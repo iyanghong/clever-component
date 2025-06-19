@@ -2,21 +2,15 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 
-// 导入 Naive UI
 import naive from 'naive-ui'
+import '@clever-component'
 
-// 导入组件库
-import CleverComponent from '@clever-component'
+// 导入 mock 服务（仅在开发环境）
+if (import.meta.env.DEV) {
+  import('./mock')
+}
 
 const app = createApp(App)
-
-// 使用路由
-app.use(router)
-
-// 使用 Naive UI
 app.use(naive)
-
-// 使用组件库
-app.use(CleverComponent)
-
+app.use(router)
 app.mount('#app')
