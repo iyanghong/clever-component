@@ -7,13 +7,7 @@ export {
   disableMockInterceptor
 } from './interceptor'
 
-// 自动初始化 mock 服务
+// 自动初始化 mock 服务（拦截器已在 interceptor.ts 中自动安装）
 if (import.meta.env.DEV) {
-  console.log('[Mock Service] Initializing mock API service...')
-  
-  // 动态导入拦截器以避免在生产环境中加载
-  import('./interceptor').then(({ installMockInterceptor }) => {
-    installMockInterceptor()
-    console.log('[Mock Service] Mock API service is ready!')
-  })
+  console.log('[Mock Service] Mock API service is ready!')
 }

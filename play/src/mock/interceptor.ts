@@ -57,7 +57,7 @@ const mockFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<
         }
       }
       
-      console.log(`[Mock API] ${method} ${pathname}`, { params, data: requestData })
+      console.log(`[Mock API] Intercepting ${method} ${pathname}`, { params, data: requestData })
       
       const result = await callMockApi(pathname, method, params, requestData)
       

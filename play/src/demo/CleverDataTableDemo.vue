@@ -5,97 +5,59 @@
       <n-card title="基础用法">
         <CleverDataTable
           :columns="basicColumns"
-          :api-config="basicApiConfig"
-          @row-click="handleRowClick"
+          :data="basicData"
+          :pagination="false"
         />
       </n-card>
 
-      <!-- 带搜索的数据表格 -->
-      <n-card title="带搜索的数据表格">
+      <!-- 带搜索和分页的数据表格 -->
+      <n-card title="带搜索和分页的数据表格">
         <CleverDataTable
           :columns="searchColumns"
           :api-config="searchApiConfig"
           :search-config="searchConfig"
-          @search="handleSearch"
+          :pagination-config="paginationConfig"
+          :show-index-column="true"
+          :show-selection-column="true"
+          :auto-load="true"
+          @selection-change="handleSelectionChange"
         />
       </n-card>
 
-      <!-- 带操作按钮的数据表格 -->
-      <n-card title="带操作按钮的数据表格">
+      <!-- 完整功能的数据表格 -->
+      <n-card title="完整功能的数据表格">
         <CleverDataTable
-          ref="actionTableRef"
-          :columns="actionColumns"
-          :api-config="actionApiConfig"
-          :toolbar-config="toolbarConfig"
-          :row-selection="actionRowSelection"
-          @selection-change="handleActionSelectionChange"
+          ref="fullTableRef"
+          :columns="fullColumns"
+          :api-config="fullApiConfig"
+          :form-config="formConfig"
+          :search-config="fullSearchConfig"
+          :pagination-config="fullPaginationConfig"
+          :header-actions="headerActions"
+          :actions="rowActions"
+          :show-index-column="true"
+          :show-selection-column="true"
+          :auto-load="true"
+          @action-click="handleActionClick"
+          @header-action-click="handleHeaderActionClick"
+          @form-submit="handleFormSubmit"
+          @selection-change="handleFullSelectionChange"
         />
       </n-card>
 
-      <!-- 可编辑的数据表格 -->
-      <n-card title="可编辑的数据表格">
+      <!-- 自定义渲染的数据表格 -->
+      <n-card title="自定义渲染的数据表格">
         <CleverDataTable
-          ref="editableDataTableRef"
-          :columns="editableDataColumns"
-          :api-config="editableApiConfig"
-          :editable="true"
-          @cell-edit="handleDataCellEdit"
-          @row-save="handleRowSave"
-          @row-cancel="handleRowCancel"
-        />
-      </n-card>
-
-      <!-- 树形数据表格 -->
-      <n-card title="树形数据表格">
-        <CleverDataTable
-          :columns="treeColumns"
-          :api-config="treeApiConfig"
-          :tree-config="treeConfig"
-          @node-expand="handleNodeExpand"
-        />
-      </n-card>
-
-      <!-- 虚拟滚动数据表格 -->
-      <n-card title="虚拟滚动数据表格">
-        <CleverDataTable
-          :columns="virtualColumns"
-          :api-config="virtualApiConfig"
-          :virtual-scroll="true"
-          :height="400"
-        />
-      </n-card>
-
-      <!-- 自定义筛选数据表格 -->
-      <n-card title="自定义筛选数据表格">
-        <CleverDataTable
-          :columns="filterColumns"
-          :api-config="filterApiConfig"
-          :filter-config="filterConfig"
-          @filter-change="handleFilterChange"
-        />
-      </n-card>
-
-      <!-- 导出功能数据表格 -->
-      <n-card title="导出功能数据表格">
-        <CleverDataTable
-          ref="exportTableRef"
-          :columns="exportColumns"
-          :api-config="exportApiConfig"
-          :export-config="exportConfig"
-          @export="handleExport"
-        />
-      </n-card>
-
-      <!-- 自定义渲染数据表格 -->
-      <n-card title="自定义渲染数据表格">
-        <CleverDataTable
-          :columns="customRenderColumns"
-          :api-config="customRenderApiConfig"
+          :columns="customColumns"
+          :api-config="customApiConfig"
+          :pagination-config="customPaginationConfig"
+          :show-index-column="true"
+          :auto-load="true"
         />
       </n-card>
 
       <!-- 操作结果显示 -->
-      <n-card title="操作结果" v-if="operationResult">
+      <n-card v-if="operationResult" title="操作结果">
         <n-alert type="info">
           <pre>{{ operationResult }}</pre>
         </n-alert>
@@ -105,58 +67,251 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue'
+import { ref, reactive, h } from 'vue'
 import {
   NSpace,
   NCard,
   NAlert,
-  NButton,
   NTag,
-  NProgress,
+  NButton,
   NAvatar,
-  NIcon,
-  NSwitch,
+  NProgress,
   NRate,
-  NPopconfirm,
-  NTooltip
+  NSwitch,
+  NIcon,
+  useMessage
 } from 'naive-ui'
 import {
+  PersonOutline,
+  MailOutline,
+  CallOutline,
+  LocationOutline,
   CreateOutline,
   TrashOutline,
-  DownloadOutline,
-  RefreshOutline,
   AddOutline,
-  EyeOutline,
-  SettingsOutline
+  DownloadOutline,
+  RefreshOutline
 } from '@vicons/ionicons5'
 import { CleverDataTable } from '@clever-component'
 import type {
-  DataTableColumn,
-  ApiConfig,
+  TableColumn,
+  DataTableApiConfig,
+  DataTableFormConfig,
   SearchConfig,
-  ToolbarConfig,
-  RowSelection,
-  TreeConfig,
-  FilterConfig,
-  ExportConfig
+  PaginationConfig,
+  HeaderAction,
+  TableAction,
+  FormSchema
 } from '@clever-component'
 
-// 表格引用
-const actionTableRef = ref()
-const editableDataTableRef = ref()
-const exportTableRef = ref()
-
-// 操作结果
+const message = useMessage()
+const fullTableRef = ref()
 const operationResult = ref('')
-const selectedActionRows = ref([])
 
-// 基础数据表格
-const basicColumns: DataTableColumn[] = [
-  {
-    key: 'id',
-    title: 'ID',
-    width: 80
+// 模拟数据
+const generateMockData = (count: number = 50) => {
+  const data = []
+  const departments = ['技术部', '销售部', '市场部', '人事部', '财务部']
+  const positions = ['工程师', '经理', '主管', '专员', '总监']
+  const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '西安']
+  const statuses = ['active', 'inactive', 'pending']
+  
+  for (let i = 1; i <= count; i++) {
+    data.push({
+      id: i,
+      name: `用户${i}`,
+      email: `user${i}@example.com`,
+      phone: `138${String(i).padStart(8, '0')}`,
+      age: 20 + (i % 30),
+      department: departments[i % departments.length],
+      position: positions[i % positions.length],
+      city: cities[i % cities.length],
+      salary: 5000 + (i % 20) * 1000,
+      status: statuses[i % statuses.length],
+      score: Math.floor(Math.random() * 5) + 1,
+      progress: Math.floor(Math.random() * 100),
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`,
+      joinDate: new Date(2020 + (i % 4), (i % 12), (i % 28) + 1).toISOString().split('T')[0],
+      isActive: i % 3 !== 0,
+      tags: [`标签${i % 3 + 1}`, `类型${i % 2 + 1}`]
+    })
+  }
+  return data
+}
+
+const mockData = generateMockData()
+
+// 模拟API函数
+const mockApi = {
+  // 列表查询
+  async getList(params: any) {
+    console.log('API调用 - 获取列表:', params)
+    await new Promise(resolve => setTimeout(resolve, 800)) // 模拟网络延迟
+    
+    let filteredData = [...mockData]
+    
+    // 搜索过滤
+    if (params.name) {
+      filteredData = filteredData.filter(item => 
+        item.name.includes(params.name)
+      )
+    }
+    if (params.department) {
+      filteredData = filteredData.filter(item => 
+        item.department === params.department
+      )
+    }
+    if (params.status) {
+      filteredData = filteredData.filter(item => 
+        item.status === params.status
+      )
+    }
+    
+    // 分页
+    const { page = 1, pageSize = 10 } = params
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+    const list = filteredData.slice(start, end)
+    
+    return {
+      code: 0,
+      data: {
+        list,
+        total: filteredData.length
+      },
+      message: 'success'
+    }
   },
+  
+  // 创建
+  async create(data: any) {
+    console.log('API调用 - 创建:', data)
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const newItem = {
+      ...data,
+      id: mockData.length + 1,
+      joinDate: new Date().toISOString().split('T')[0]
+    }
+    mockData.push(newItem)
+    
+    return {
+      code: 0,
+      data: newItem,
+      message: '创建成功'
+    }
+  },
+  
+  // 更新
+  async update(data: any) {
+    console.log('API调用 - 更新:', data)
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const index = mockData.findIndex(item => item.id === data.id)
+    if (index > -1) {
+      mockData[index] = { ...mockData[index], ...data }
+      return {
+        code: 0,
+        data: mockData[index],
+        message: '更新成功'
+      }
+    }
+    
+    return {
+      code: 1,
+      message: '记录不存在'
+    }
+  },
+  
+  // 删除
+  async delete(id: number) {
+    console.log('API调用 - 删除:', id)
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    const index = mockData.findIndex(item => item.id === id)
+    if (index > -1) {
+      mockData.splice(index, 1)
+      return {
+        code: 0,
+        data: true,
+        message: '删除成功'
+      }
+    }
+    
+    return {
+      code: 1,
+      message: '记录不存在'
+    }
+  },
+  
+  // 批量删除
+  async batchDelete(ids: number[]) {
+    console.log('API调用 - 批量删除:', ids)
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    ids.forEach(id => {
+      const index = mockData.findIndex(item => item.id === id)
+      if (index > -1) {
+        mockData.splice(index, 1)
+      }
+    })
+    
+    return {
+      code: 0,
+      data: true,
+      message: `成功删除 ${ids.length} 条记录`
+    }
+  },
+  
+  // 获取详情
+  async getDetail(id: number) {
+    console.log('API调用 - 获取详情:', id)
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    const item = mockData.find(item => item.id === id)
+    if (item) {
+      return {
+        code: 0,
+        data: item,
+        message: 'success'
+      }
+    }
+    
+    return {
+      code: 1,
+      message: '记录不存在'
+    }
+  }
+}
+
+// 基础表格配置
+const basicColumns: TableColumn[] = [
+  {
+    key: 'name',
+    title: '姓名',
+    width: 120
+  },
+  {
+    key: 'email',
+    title: '邮箱',
+    width: 200
+  },
+  {
+    key: 'department',
+    title: '部门',
+    width: 120
+  },
+  {
+    key: 'position',
+    title: '职位',
+    width: 120
+  }
+]
+
+const basicData = mockData.slice(0, 5)
+
+// 带搜索的表格配置
+const searchColumns: TableColumn[] = [
   {
     key: 'name',
     title: '姓名',
@@ -178,600 +333,598 @@ const basicColumns: DataTableColumn[] = [
     width: 100,
     render: (row) => {
       const statusMap = {
-        active: { type: 'success', text: '活跃' },
-        inactive: { type: 'warning', text: '不活跃' },
-        banned: { type: 'error', text: '已禁用' }
+        active: { type: 'success', text: '激活' },
+        inactive: { type: 'error', text: '禁用' },
+        pending: { type: 'warning', text: '待审核' }
       }
-      const status = statusMap[row.status] || { type: 'default', text: '未知' }
+      const status = statusMap[row.status as keyof typeof statusMap]
       return h(NTag, { type: status.type }, () => status.text)
     }
-  },
-  {
-    key: 'createdAt',
-    title: '创建时间',
-    width: 180
   }
 ]
 
-const basicApiConfig: ApiConfig = {
-  url: '/api/users',
-  method: 'GET',
-  params: {
-    page: 1,
-    pageSize: 10
-  }
-}
-
-// 带搜索的数据表格
-const searchColumns = basicColumns
-
-const searchApiConfig: ApiConfig = {
-  url: '/api/users/search',
-  method: 'GET'
+const searchApiConfig: DataTableApiConfig = {
+  listApi: mockApi.getList
 }
 
 const searchConfig: SearchConfig = {
-  fields: [
+  show: true,
+  collapsible: true,
+  schemas: [
     {
-      key: 'name',
+      field: 'name',
       label: '姓名',
-      type: 'input',
-      placeholder: '请输入姓名'
+      component: 'NInput',
+      componentProps: {
+        placeholder: '请输入姓名'
+      }
     },
     {
-      key: 'email',
-      label: '邮箱',
-      type: 'input',
-      placeholder: '请输入邮箱'
-    },
-    {
-      key: 'department',
+      field: 'department',
       label: '部门',
-      type: 'select',
-      placeholder: '请选择部门',
-      options: [
-        { label: '技术部', value: 'tech' },
-        { label: '销售部', value: 'sales' },
-        { label: '市场部', value: 'marketing' },
-        { label: '人事部', value: 'hr' }
-      ]
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择部门',
+        options: [
+          { label: '技术部', value: '技术部' },
+          { label: '销售部', value: '销售部' },
+          { label: '市场部', value: '市场部' },
+          { label: '人事部', value: '人事部' },
+          { label: '财务部', value: '财务部' }
+        ]
+      }
     },
     {
-      key: 'status',
+      field: 'status',
       label: '状态',
-      type: 'select',
-      placeholder: '请选择状态',
-      options: [
-        { label: '活跃', value: 'active' },
-        { label: '不活跃', value: 'inactive' },
-        { label: '已禁用', value: 'banned' }
-      ]
-    },
-    {
-      key: 'dateRange',
-      label: '创建时间',
-      type: 'date-range',
-      placeholder: ['开始日期', '结束日期']
-    }
-  ],
-  showReset: true,
-  showCollapse: true,
-  defaultCollapsed: false
-}
-
-// 带操作按钮的数据表格
-const actionColumns: DataTableColumn[] = [
-  ...basicColumns,
-  {
-    key: 'actions',
-    title: '操作',
-    width: 200,
-    fixed: 'right',
-    render: (row) => {
-      return h(NSpace, { size: 'small' }, () => [
-        h(NTooltip, { trigger: 'hover' }, {
-          trigger: () => h(NButton, {
-            size: 'small',
-            type: 'primary',
-            quaternary: true,
-            onClick: () => handleView(row)
-          }, () => h(NIcon, null, () => h(EyeOutline))),
-          default: () => '查看'
-        }),
-        h(NTooltip, { trigger: 'hover' }, {
-          trigger: () => h(NButton, {
-            size: 'small',
-            type: 'info',
-            quaternary: true,
-            onClick: () => handleEdit(row)
-          }, () => h(NIcon, null, () => h(CreateOutline))),
-          default: () => '编辑'
-        }),
-        h(NPopconfirm, {
-          onPositiveClick: () => handleDelete(row)
-        }, {
-          trigger: () => h(NTooltip, { trigger: 'hover' }, {
-            trigger: () => h(NButton, {
-              size: 'small',
-              type: 'error',
-              quaternary: true
-            }, () => h(NIcon, null, () => h(TrashOutline))),
-            default: () => '删除'
-          }),
-          default: () => '确定要删除这条记录吗？'
-        })
-      ])
-    }
-  }
-]
-
-const actionApiConfig: ApiConfig = {
-  url: '/api/users/list',
-  method: 'GET'
-}
-
-const toolbarConfig: ToolbarConfig = {
-  title: '用户管理',
-  buttons: [
-    {
-      text: '新增用户',
-      type: 'primary',
-      icon: h(AddOutline),
-      onClick: () => handleAdd()
-    },
-    {
-      text: '批量删除',
-      type: 'error',
-      icon: h(TrashOutline),
-      disabled: () => selectedActionRows.value.length === 0,
-      onClick: () => handleBatchDelete()
-    },
-    {
-      text: '导出数据',
-      type: 'default',
-      icon: h(DownloadOutline),
-      onClick: () => handleExportData()
-    },
-    {
-      text: '刷新',
-      type: 'default',
-      icon: h(RefreshOutline),
-      onClick: () => handleRefresh()
-    }
-  ],
-  extra: [
-    {
-      text: '设置',
-      type: 'default',
-      icon: h(SettingsOutline),
-      onClick: () => handleSettings()
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择状态',
+        options: [
+          { label: '激活', value: 'active' },
+          { label: '禁用', value: 'inactive' },
+          { label: '待审核', value: 'pending' }
+        ]
+      }
     }
   ]
 }
 
-const actionRowSelection: RowSelection = {
-  type: 'checkbox',
-  showSelectAll: true
+const paginationConfig: PaginationConfig = {
+  page: 1,
+  pageSize: 10,
+  showSizePicker: true,
+  pageSizes: [10, 20, 50]
 }
 
-// 可编辑的数据表格
-const editableDataColumns: DataTableColumn[] = [
-  {
-    key: 'id',
-    title: 'ID',
-    width: 80,
-    editable: false
-  },
-  {
-    key: 'name',
-    title: '姓名',
-    width: 120,
-    editable: true,
-    editType: 'input',
-    rules: [
-      { required: true, message: '请输入姓名' }
-    ]
-  },
-  {
-    key: 'email',
-    title: '邮箱',
-    width: 200,
-    editable: true,
-    editType: 'input',
-    rules: [
-      { required: true, message: '请输入邮箱' },
-      { type: 'email', message: '请输入正确的邮箱格式' }
-    ]
-  },
-  {
-    key: 'department',
-    title: '部门',
-    width: 120,
-    editable: true,
-    editType: 'select',
-    editOptions: [
-      { label: '技术部', value: 'tech' },
-      { label: '销售部', value: 'sales' },
-      { label: '市场部', value: 'marketing' },
-      { label: '人事部', value: 'hr' }
-    ]
-  },
-  {
-    key: 'salary',
-    title: '薪资',
-    width: 120,
-    editable: true,
-    editType: 'input-number',
-    editProps: {
-      min: 0,
-      max: 100000,
-      step: 1000
-    }
-  },
-  {
-    key: 'status',
-    title: '状态',
-    width: 100,
-    editable: true,
-    editType: 'switch',
-    render: (row) => {
-      return h(NSwitch, {
-        value: row.status === 'active',
-        checkedValue: true,
-        uncheckedValue: false
-      })
-    }
-  }
-]
-
-const editableApiConfig: ApiConfig = {
-  url: '/api/users/editable',
-  method: 'GET',
-  updateUrl: '/api/users/update',
-  updateMethod: 'PUT'
-}
-
-// 树形数据表格
-const treeColumns: DataTableColumn[] = [
-  {
-    key: 'name',
-    title: '名称',
-    width: 200,
-    tree: true
-  },
-  {
-    key: 'type',
-    title: '类型',
-    width: 100
-  },
-  {
-    key: 'size',
-    title: '大小',
-    width: 120
-  },
-  {
-    key: 'modifiedAt',
-    title: '修改时间',
-    width: 180
-  }
-]
-
-const treeApiConfig: ApiConfig = {
-  url: '/api/files/tree',
-  method: 'GET'
-}
-
-const treeConfig: TreeConfig = {
-  childrenKey: 'children',
-  hasChildrenKey: 'hasChildren',
-  expandedKeys: [],
-  defaultExpandAll: false,
-  lazy: true,
-  loadData: async (node) => {
-    // 模拟异步加载子节点
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve([
-          {
-            id: `${node.id}-1`,
-            name: `子节点 ${node.id}-1`,
-            type: 'file',
-            size: '1.2MB',
-            modifiedAt: '2023-12-01 10:30:00'
-          }
-        ])
-      }, 1000)
-    })
-  }
-}
-
-// 虚拟滚动数据表格
-const virtualColumns: DataTableColumn[] = [
-  {
-    key: 'index',
-    title: '序号',
-    width: 80,
-    render: (row, index) => index + 1
-  },
-  {
-    key: 'name',
-    title: '姓名',
-    width: 120
-  },
-  {
-    key: 'email',
-    title: '邮箱',
-    width: 200
-  },
-  {
-    key: 'phone',
-    title: '电话',
-    width: 150
-  },
-  {
-    key: 'address',
-    title: '地址',
-    width: 250
-  }
-]
-
-const virtualApiConfig: ApiConfig = {
-  url: '/api/users/large-dataset',
-  method: 'GET',
-  params: {
-    total: 10000
-  }
-}
-
-// 自定义筛选数据表格
-const filterColumns: DataTableColumn[] = [
-  {
-    key: 'name',
-    title: '姓名',
-    width: 120,
-    filterable: true
-  },
-  {
-    key: 'age',
-    title: '年龄',
-    width: 100,
-    filterable: true,
-    filterType: 'number-range'
-  },
-  {
-    key: 'department',
-    title: '部门',
-    width: 120,
-    filterable: true,
-    filterType: 'select',
-    filterOptions: [
-      { label: '技术部', value: 'tech' },
-      { label: '销售部', value: 'sales' },
-      { label: '市场部', value: 'marketing' }
-    ]
-  },
-  {
-    key: 'salary',
-    title: '薪资',
-    width: 120,
-    filterable: true,
-    filterType: 'number-range'
-  },
-  {
-    key: 'joinDate',
-    title: '入职日期',
-    width: 150,
-    filterable: true,
-    filterType: 'date-range'
-  }
-]
-
-const filterApiConfig: ApiConfig = {
-  url: '/api/users/filterable',
-  method: 'GET'
-}
-
-const filterConfig: FilterConfig = {
-  mode: 'advanced',
-  showQuickFilter: true,
-  quickFilters: [
-    { label: '全部', value: 'all' },
-    { label: '本月新增', value: 'this-month' },
-    { label: '活跃用户', value: 'active' },
-    { label: '待激活', value: 'pending' }
-  ]
-}
-
-// 导出功能数据表格
-const exportColumns = basicColumns
-
-const exportApiConfig: ApiConfig = {
-  url: '/api/users/exportable',
-  method: 'GET'
-}
-
-const exportConfig: ExportConfig = {
-  formats: ['xlsx', 'csv', 'pdf'],
-  filename: '用户数据',
-  includeHeaders: true,
-  customFields: [
-    { key: 'id', label: '用户ID' },
-    { key: 'name', label: '用户姓名' },
-    { key: 'email', label: '邮箱地址' },
-    { key: 'department', label: '所属部门' },
-    { key: 'status', label: '用户状态' }
-  ]
-}
-
-// 自定义渲染数据表格
-const customRenderColumns: DataTableColumn[] = [
+// 完整功能表格配置
+const fullColumns: TableColumn[] = [
   {
     key: 'avatar',
     title: '头像',
     width: 80,
     render: (row) => {
       return h(NAvatar, {
-        size: 'medium',
-        src: row.avatar || 'https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg'
+        size: 'small',
+        src: row.avatar,
+        fallbackSrc: 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
       })
     }
   },
   {
-    key: 'userInfo',
-    title: '用户信息',
+    key: 'name',
+    title: '姓名',
+    width: 120,
+    render: (row) => {
+      return h('div', {
+        style: 'display: flex; align-items: center; gap: 8px;'
+      }, [
+        h(NIcon, { size: 16 }, () => h(PersonOutline)),
+        row.name
+      ])
+    }
+  },
+  {
+    key: 'email',
+    title: '邮箱',
     width: 200,
     render: (row) => {
-      return h('div', [
-        h('div', { style: 'font-weight: bold; margin-bottom: 4px;' }, row.name),
-        h('div', { style: 'font-size: 12px; color: #999;' }, row.email),
-        h('div', { style: 'font-size: 12px; color: #666;' }, row.phone)
+      return h('div', {
+        style: 'display: flex; align-items: center; gap: 8px;'
+      }, [
+        h(NIcon, { size: 16 }, () => h(MailOutline)),
+        row.email
+      ])
+    }
+  },
+  {
+    key: 'phone',
+    title: '电话',
+    width: 150,
+    render: (row) => {
+      return h('div', {
+        style: 'display: flex; align-items: center; gap: 8px;'
+      }, [
+        h(NIcon, { size: 16 }, () => h(CallOutline)),
+        row.phone
+      ])
+    }
+  },
+  {
+    key: 'department',
+    title: '部门',
+    width: 120
+  },
+  {
+    key: 'position',
+    title: '职位',
+    width: 120
+  },
+  {
+    key: 'salary',
+    title: '薪资',
+    width: 100,
+    render: (row) => {
+      return `¥${row.salary.toLocaleString()}`
+    }
+  },
+  {
+    key: 'score',
+    title: '评分',
+    width: 120,
+    render: (row) => {
+      return h(NRate, {
+        value: row.score,
+        readonly: true,
+        size: 'small'
+      })
+    }
+  },
+  {
+    key: 'progress',
+    title: '进度',
+    width: 120,
+    render: (row) => {
+      return h(NProgress, {
+        percentage: row.progress,
+        showIndicator: false,
+        height: 8
+      })
+    }
+  },
+  {
+    key: 'isActive',
+    title: '是否激活',
+    width: 100,
+    render: (row) => {
+      return h(NSwitch, {
+        value: row.isActive,
+        disabled: true
+      })
+    }
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 100,
+    render: (row) => {
+      const statusMap = {
+        active: { type: 'success', text: '激活' },
+        inactive: { type: 'error', text: '禁用' },
+        pending: { type: 'warning', text: '待审核' }
+      }
+      const status = statusMap[row.status as keyof typeof statusMap]
+      return h(NTag, { type: status.type }, () => status.text)
+    }
+  },
+  {
+    key: 'tags',
+    title: '标签',
+    width: 150,
+    render: (row) => {
+      return h('div', {
+        style: 'display: flex; gap: 4px; flex-wrap: wrap;'
+      }, row.tags.map((tag: string) => 
+        h(NTag, { size: 'small', type: 'info' }, () => tag)
+      ))
+    }
+  }
+]
+
+const fullApiConfig: DataTableApiConfig = {
+  listApi: mockApi.getList,
+  createApi: mockApi.create,
+  updateApi: mockApi.update,
+  deleteApi: mockApi.delete,
+  batchDeleteApi: mockApi.batchDelete,
+  getApi: mockApi.getDetail
+}
+
+const formConfig: DataTableFormConfig = {
+  title: '用户信息',
+  mode: 'drawer',
+  width: 600,
+  schemas: [
+    {
+      field: 'name',
+      label: '姓名',
+      component: 'NInput',
+      required: true,
+      componentProps: {
+        placeholder: '请输入姓名'
+      }
+    },
+    {
+      field: 'email',
+      label: '邮箱',
+      component: 'NInput',
+      required: true,
+      componentProps: {
+        placeholder: '请输入邮箱'
+      }
+    },
+    {
+      field: 'phone',
+      label: '电话',
+      component: 'NInput',
+      componentProps: {
+        placeholder: '请输入电话号码'
+      }
+    },
+    {
+      field: 'age',
+      label: '年龄',
+      component: 'NInputNumber',
+      componentProps: {
+        placeholder: '请输入年龄',
+        min: 18,
+        max: 65
+      }
+    },
+    {
+      field: 'department',
+      label: '部门',
+      component: 'NSelect',
+      required: true,
+      componentProps: {
+        placeholder: '请选择部门',
+        options: [
+          { label: '技术部', value: '技术部' },
+          { label: '销售部', value: '销售部' },
+          { label: '市场部', value: '市场部' },
+          { label: '人事部', value: '人事部' },
+          { label: '财务部', value: '财务部' }
+        ]
+      }
+    },
+    {
+      field: 'position',
+      label: '职位',
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择职位',
+        options: [
+          { label: '工程师', value: '工程师' },
+          { label: '经理', value: '经理' },
+          { label: '主管', value: '主管' },
+          { label: '专员', value: '专员' },
+          { label: '总监', value: '总监' }
+        ]
+      }
+    },
+    {
+      field: 'city',
+      label: '城市',
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择城市',
+        options: [
+          { label: '北京', value: '北京' },
+          { label: '上海', value: '上海' },
+          { label: '广州', value: '广州' },
+          { label: '深圳', value: '深圳' },
+          { label: '杭州', value: '杭州' },
+          { label: '成都', value: '成都' }
+        ]
+      }
+    },
+    {
+      field: 'salary',
+      label: '薪资',
+      component: 'NInputNumber',
+      componentProps: {
+        placeholder: '请输入薪资',
+        min: 3000,
+        max: 50000,
+        step: 1000
+      }
+    },
+    {
+      field: 'status',
+      label: '状态',
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择状态',
+        options: [
+          { label: '激活', value: 'active' },
+          { label: '禁用', value: 'inactive' },
+          { label: '待审核', value: 'pending' }
+        ]
+      }
+    },
+    {
+      field: 'isActive',
+      label: '是否激活',
+      component: 'NSwitch'
+    }
+  ]
+}
+
+const fullSearchConfig: SearchConfig = {
+  show: true,
+  collapsible: true,
+  schemas: [
+    {
+      field: 'name',
+      label: '姓名',
+      component: 'NInput',
+      componentProps: {
+        placeholder: '请输入姓名'
+      }
+    },
+    {
+      field: 'department',
+      label: '部门',
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择部门',
+        options: [
+          { label: '技术部', value: '技术部' },
+          { label: '销售部', value: '销售部' },
+          { label: '市场部', value: '市场部' },
+          { label: '人事部', value: '人事部' },
+          { label: '财务部', value: '财务部' }
+        ]
+      }
+    },
+    {
+      field: 'status',
+      label: '状态',
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择状态',
+        options: [
+          { label: '激活', value: 'active' },
+          { label: '禁用', value: 'inactive' },
+          { label: '待审核', value: 'pending' }
+        ]
+      }
+    },
+    {
+      field: 'city',
+      label: '城市',
+      component: 'NSelect',
+      componentProps: {
+        placeholder: '请选择城市',
+        options: [
+          { label: '北京', value: '北京' },
+          { label: '上海', value: '上海' },
+          { label: '广州', value: '广州' },
+          { label: '深圳', value: '深圳' }
+        ]
+      }
+    }
+  ]
+}
+
+const fullPaginationConfig: PaginationConfig = {
+  page: 1,
+  pageSize: 10,
+  showSizePicker: true,
+  pageSizes: [5, 10, 20, 50]
+}
+
+const headerActions: HeaderAction[] = [
+  {
+    key: 'create',
+    label: '新增用户',
+    type: 'primary',
+    icon: AddOutline
+  },
+  {
+    key: 'export',
+    label: '导出数据',
+    type: 'default',
+    icon: DownloadOutline
+  },
+  {
+    key: 'refresh',
+    label: '刷新',
+    type: 'default',
+    icon: RefreshOutline
+  }
+]
+
+const rowActions: TableAction[] = [
+  {
+    key: 'view',
+    label: '查看',
+    type: 'info'
+  },
+  {
+    key: 'edit',
+    label: '编辑',
+    type: 'primary',
+    icon: CreateOutline
+  },
+  {
+    key: 'delete',
+    label: '删除',
+    type: 'error',
+    icon: TrashOutline
+  }
+]
+
+// 自定义渲染表格配置
+const customColumns: TableColumn[] = [
+  {
+    key: 'name',
+    title: '用户信息',
+    width: 250,
+    render: (row) => {
+      return h('div', {
+        style: 'display: flex; align-items: center; gap: 12px;'
+      }, [
+        h(NAvatar, {
+          size: 'medium',
+          src: row.avatar,
+          fallbackSrc: 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
+        }),
+        h('div', {}, [
+          h('div', { style: 'font-weight: 500; margin-bottom: 4px;' }, row.name),
+          h('div', { style: 'font-size: 12px; color: #999;' }, row.email)
+        ])
+      ])
+    }
+  },
+  {
+    key: 'work',
+    title: '工作信息',
+    width: 200,
+    render: (row) => {
+      return h('div', {}, [
+        h('div', { style: 'margin-bottom: 4px;' }, `${row.department} - ${row.position}`),
+        h('div', { style: 'font-size: 12px; color: #999;' }, `薪资: ¥${row.salary.toLocaleString()}`)
+      ])
+    }
+  },
+  {
+    key: 'location',
+    title: '位置',
+    width: 120,
+    render: (row) => {
+      return h('div', {
+        style: 'display: flex; align-items: center; gap: 8px;'
+      }, [
+        h(NIcon, { size: 16 }, () => h(LocationOutline)),
+        row.city
       ])
     }
   },
   {
     key: 'performance',
     title: '绩效',
-    width: 150,
-    render: (row) => {
-      return h('div', [
-        h('div', { style: 'margin-bottom: 8px;' }, [
-          h('span', { style: 'margin-right: 8px;' }, '完成度:'),
-          h(NProgress, {
-            type: 'line',
-            percentage: row.performance || 0,
-            status: (row.performance || 0) >= 80 ? 'success' : 'info',
-            showIndicator: false,
-            height: 6
-          })
-        ]),
-        h('div', { style: 'font-size: 12px; color: #666;' }, `${row.performance || 0}%`)
-      ])
-    }
-  },
-  {
-    key: 'rating',
-    title: '评分',
-    width: 120,
-    render: (row) => {
-      return h('div', { style: 'text-align: center;' }, [
-        h(NRate, {
-          value: row.rating || 0,
-          readonly: true,
-          size: 'small'
-        }),
-        h('div', { style: 'font-size: 12px; color: #666; margin-top: 4px;' }, 
-          `${row.rating || 0}/5`
-        )
-      ])
-    }
-  },
-  {
-    key: 'tags',
-    title: '标签',
     width: 200,
     render: (row) => {
-      const tags = row.tags || []
-      return h(NSpace, { size: 'small' }, () => 
-        tags.map(tag => 
-          h(NTag, {
-            size: 'small',
-            type: tag.type || 'default'
-          }, () => tag.text)
-        )
-      )
+      return h('div', {}, [
+        h('div', {
+          style: 'display: flex; align-items: center; gap: 8px; margin-bottom: 8px;'
+        }, [
+          h('span', { style: 'font-size: 12px;' }, '评分:'),
+          h(NRate, {
+            value: row.score,
+            readonly: true,
+            size: 'small'
+          })
+        ]),
+        h('div', {
+          style: 'display: flex; align-items: center; gap: 8px;'
+        }, [
+          h('span', { style: 'font-size: 12px;' }, '进度:'),
+          h(NProgress, {
+            percentage: row.progress,
+            showIndicator: true,
+            height: 6,
+            style: 'flex: 1;'
+          })
+        ])
+      ])
+    }
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 120,
+    render: (row) => {
+      const statusMap = {
+        active: { type: 'success', text: '激活' },
+        inactive: { type: 'error', text: '禁用' },
+        pending: { type: 'warning', text: '待审核' }
+      }
+      const status = statusMap[row.status as keyof typeof statusMap]
+      return h('div', {
+        style: 'display: flex; flex-direction: column; gap: 4px;'
+      }, [
+        h(NTag, { type: status.type, size: 'small' }, () => status.text),
+        h(NSwitch, {
+          value: row.isActive,
+          size: 'small',
+          disabled: true
+        })
+      ])
     }
   }
 ]
 
-const customRenderApiConfig: ApiConfig = {
-  url: '/api/users/custom-render',
-  method: 'GET'
+const customApiConfig: DataTableApiConfig = {
+  listApi: mockApi.getList
 }
 
-// 方法
-const handleRowClick = (row: any) => {
-  operationResult.value = `点击了行：${JSON.stringify(row, null, 2)}`
+const customPaginationConfig: PaginationConfig = {
+  page: 1,
+  pageSize: 8,
+  showSizePicker: true,
+  pageSizes: [8, 16, 24]
 }
 
-const handleSearch = (searchParams: any) => {
-  operationResult.value = `搜索参数：${JSON.stringify(searchParams, null, 2)}`
+// 事件处理
+const handleSelectionChange = (keys: (string | number)[]) => {
+  operationResult.value = `选择了 ${keys.length} 条记录: ${keys.join(', ')}`
 }
 
-const handleActionSelectionChange = (selectedRowKeys: any[], selectedRows: any[]) => {
-  selectedActionRows.value = selectedRows
-  operationResult.value = `选择了 ${selectedRows.length} 行数据`
+const handleFullSelectionChange = (keys: (string | number)[]) => {
+  operationResult.value = `完整表格选择了 ${keys.length} 条记录: ${keys.join(', ')}`
 }
 
-const handleView = (row: any) => {
-  operationResult.value = `查看用户：${row.name}`
+const handleActionClick = (action: string, record: any, index: number) => {
+  operationResult.value = `点击了行操作: ${action}, 记录ID: ${record.id}, 索引: ${index}`
+  
+  if (action === 'view') {
+    message.info(`查看用户: ${record.name}`)
+  } else if (action === 'delete') {
+    message.warning(`删除用户: ${record.name}`)
+  }
 }
 
-const handleEdit = (row: any) => {
-  operationResult.value = `编辑用户：${row.name}`
+const handleHeaderActionClick = (action: string) => {
+  operationResult.value = `点击了表头操作: ${action}`
+  
+  if (action === 'create') {
+    message.info('打开新增用户表单')
+  } else if (action === 'export') {
+    message.info('开始导出数据')
+  } else if (action === 'refresh') {
+    message.info('刷新表格数据')
+    fullTableRef.value?.refresh()
+  }
 }
 
-const handleDelete = (row: any) => {
-  operationResult.value = `删除用户：${row.name}`
-}
-
-const handleAdd = () => {
-  operationResult.value = '新增用户'
-}
-
-const handleBatchDelete = () => {
-  operationResult.value = `批量删除 ${selectedActionRows.value.length} 个用户`
-}
-
-const handleExportData = () => {
-  operationResult.value = '导出数据'
-}
-
-const handleRefresh = () => {
-  actionTableRef.value?.refresh()
-  operationResult.value = '刷新数据'
-}
-
-const handleSettings = () => {
-  operationResult.value = '打开设置'
-}
-
-const handleDataCellEdit = (row: any, field: string, value: any) => {
-  operationResult.value = `编辑单元格：${field} = ${value}`
-}
-
-const handleRowSave = (row: any) => {
-  operationResult.value = `保存行数据：${JSON.stringify(row, null, 2)}`
-}
-
-const handleRowCancel = (row: any) => {
-  operationResult.value = `取消编辑：${row.name}`
-}
-
-const handleNodeExpand = (expanded: boolean, node: any) => {
-  operationResult.value = `节点 ${node.name} ${expanded ? '展开' : '收起'}`
-}
-
-const handleFilterChange = (filters: any) => {
-  operationResult.value = `筛选条件：${JSON.stringify(filters, null, 2)}`
-}
-
-const handleExport = (format: string, data: any[]) => {
-  operationResult.value = `导出 ${format} 格式，共 ${data.length} 条数据`
+const handleFormSubmit = (values: Record<string, any>, type: 'create' | 'update') => {
+  operationResult.value = `表单提交: ${type}, 数据: ${JSON.stringify(values, null, 2)}`
+  message.success(`${type === 'create' ? '创建' : '更新'}成功`)
 }
 </script>
 
 <style scoped>
 .clever-data-table-demo {
-  max-width: 100%;
+  padding: 20px;
 }
 
-pre {
-  background-color: var(--n-color);
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  line-height: 1.4;
-  max-height: 200px;
-  overflow: auto;
+.clever-data-table-demo :deep(.n-card) {
+  margin-bottom: 20px;
+}
+
+.clever-data-table-demo :deep(.n-card:last-child) {
+  margin-bottom: 0;
 }
 </style>
