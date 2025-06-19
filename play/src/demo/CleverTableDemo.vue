@@ -150,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed,h } from 'vue'
 import {
   NSpace,
   NCard,

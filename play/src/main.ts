@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import router from './router'
 
 // 导入 Naive UI
 import naive from 'naive-ui'
@@ -8,6 +9,9 @@ import naive from 'naive-ui'
 import CleverComponent from '@clever-component'
 
 const app = createApp(App)
+
+// 使用路由
+app.use(router)
 
 // 使用 Naive UI
 app.use(naive)

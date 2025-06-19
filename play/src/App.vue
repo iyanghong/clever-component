@@ -45,25 +45,8 @@
               <!-- 主内容区域 -->
               <n-layout-content class="content">
                 <div class="demo-container">
-                  <!-- 首页 -->
-                  <div v-if="activeKey === 'home'" class="home-page">
-                    <n-card title="欢迎使用 Clever Component">
-                      <p>这是一个基于 Vue 3 + Vite + TypeScript + Naive UI 的现代化组件库。</p>
-                      <p>请从左侧菜单选择组件查看演示。</p>
-                    </n-card>
-                  </div>
-
-                  <!-- CleverForm组件演示 -->
-                  <CleverFormDemo v-else-if="activeKey === 'clever-form'" />
-
-                  <!-- CleverPopup组件演示 -->
-                  <CleverPopupDemo v-else-if="activeKey === 'clever-popup'" />
-
-                  <!-- CleverTable组件演示 -->
-                  <CleverTableDemo v-else-if="activeKey === 'clever-table'" />
-
-                  <!-- CleverDataTable组件演示 -->
-                  <CleverDataTableDemo v-else-if="activeKey === 'clever-data-table'" />
+                  <!-- 路由视图 -->
+                  <router-view />
                 </div>
               </n-layout-content>
             </n-layout>
@@ -76,6 +59,7 @@
 
 <script setup lang="ts">
 import { ref, computed, h } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import {
   NConfigProvider,
   NMessageProvider,
@@ -87,30 +71,30 @@ import {
   NMenu,
   NButton,
   NSpace,
-  NCard,
   darkTheme,
   type MenuOption
 } from 'naive-ui'
 import {
   HomeOutline,
-  RadioButtonOnOutline,
-  CardOutline,
-  CreateOutline,
   DocumentTextOutline,
   GridOutline,
   LayersOutline
 } from '@vicons/ionicons5'
 
-// 导入演示组件
-import CleverFormDemo from './demo/CleverFormDemo.vue'
-import CleverPopupDemo from './demo/CleverPopupDemo.vue'
-import CleverTableDemo from './demo/CleverTableDemo.vue'
-import CleverDataTableDemo from './demo/CleverDataTableDemo.vue'
+// 路由相关
+const router = useRouter()
+const route = useRoute()
 
 // 响应式数据
 const isDark = ref(false)
 const collapsed = ref(false)
-const activeKey = ref('home')
+
+// 当前激活的菜单项（基于路由）
+const activeKey = computed(() => {
+  const path = route.path
+  if (path === '/') return 'home'
+  return path.substring(1) // 移除开头的 '/'
+})
 
 // 菜单选项
 const menuOptions: MenuOption[] = [
@@ -119,7 +103,6 @@ const menuOptions: MenuOption[] = [
     key: 'home',
     icon: () => h(HomeOutline)
   },
-
   {
     label: '高级组件',
     key: 'advanced',
@@ -131,10 +114,10 @@ const menuOptions: MenuOption[] = [
         icon: () => h(DocumentTextOutline)
       },
       {
-          label: 'CleverPopup 弹窗',
-          key: 'clever-popup',
-          icon: () => h(LayersOutline)
-        },
+        label: 'CleverPopup 弹窗',
+        key: 'clever-popup',
+        icon: () => h(LayersOutline)
+      },
       {
         label: 'CleverTable 表格',
         key: 'clever-table',
@@ -151,19 +134,7 @@ const menuOptions: MenuOption[] = [
 
 // 计算当前页面标题
 const currentTitle = computed(() => {
-  const findTitle = (options: MenuOption[]): string => {
-    for (const option of options) {
-      if (option.key === activeKey.value) {
-        return option.label as string
-      }
-      if (option.children) {
-        const childTitle = findTitle(option.children as MenuOption[])
-        if (childTitle) return childTitle
-      }
-    }
-    return 'Clever Component 开发预览'
-  }
-  return findTitle(menuOptions)
+  return route.meta?.title as string || 'Clever Component 开发预览'
 })
 
 // 方法
@@ -172,7 +143,12 @@ const toggleTheme = () => {
 }
 
 const handleMenuSelect = (key: string) => {
-  activeKey.value = key
+  // 根据菜单key导航到对应路由
+  if (key === 'home') {
+    router.push('/')
+  } else {
+    router.push(`/${key}`)
+  }
 }
 </script>
 
