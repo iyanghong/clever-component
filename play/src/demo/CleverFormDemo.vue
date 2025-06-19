@@ -5,8 +5,8 @@
       <n-card title="基础用法">
         <CleverForm
           ref="basicFormRef"
-          :schema="basicSchema"
-          :model="basicModel"
+          :schemas="basicSchema"
+          :data="basicModel"
           @submit="handleBasicSubmit"
         />
         <n-divider />
@@ -24,8 +24,8 @@
       <n-card title="复杂表单">
         <CleverForm
           ref="complexFormRef"
-          :schema="complexSchema"
-          :model="complexModel"
+          :schemas="complexSchema"
+          :data="complexModel"
           :api-config="apiConfig"
           @submit="handleComplexSubmit"
           @field-change="handleFieldChange"
@@ -54,8 +54,8 @@
           
           <CleverForm
             ref="dynamicFormRef"
-            :schema="dynamicSchema"
-            :model="dynamicModel"
+            :schemas="dynamicSchema"
+            :data="dynamicModel"
             @submit="handleDynamicSubmit"
           />
           
@@ -74,8 +74,8 @@
       <n-card title="表单验证">
         <CleverForm
           ref="validationFormRef"
-          :schema="validationSchema"
-          :model="validationModel"
+          :schemas="validationSchema"
+          :data="validationModel"
           @submit="handleValidationSubmit"
         />
         <n-divider />
@@ -92,8 +92,8 @@
       <n-card title="分组表单">
         <CleverForm
           ref="groupFormRef"
-          :schema="groupSchema"
-          :model="groupModel"
+          :schemas="groupSchema"
+          :data="groupModel"
           @submit="handleGroupSubmit"
         />
         <n-divider />
@@ -104,6 +104,78 @@
         <n-alert v-if="groupResult" type="info" style="margin-top: 16px;">
           <pre>{{ groupResult }}</pre>
         </n-alert>
+      </n-card>
+
+      <!-- 布局模式演示 -->
+      <n-card title="布局模式演示">
+        <n-space vertical size="large">
+          <!-- Grid 布局 -->
+          <div>
+            <h3>Grid 布局（默认）</h3>
+            <CleverForm
+              ref="gridFormRef"
+              :schemas="layoutSchemas"
+              :data="layoutModel"
+              layout-mode="grid"
+              :layout-config="gridLayoutConfig"
+              @submit="handleLayoutSubmit"
+            />
+          </div>
+
+          <!-- Flex 布局 -->
+          <div>
+            <h3>Flex 布局</h3>
+            <CleverForm
+              ref="flexFormRef"
+              :schemas="flexLayoutSchemas"
+              :data="layoutModel"
+              layout-mode="flex"
+              :layout-config="flexLayoutConfig"
+              @submit="handleLayoutSubmit"
+            />
+          </div>
+
+          <!-- Tabs 布局 -->
+          <div>
+            <h3>Tabs 布局</h3>
+            <CleverForm
+              ref="tabsFormRef"
+              :schemas="tabsLayoutSchemas"
+              :data="layoutModel"
+              layout-mode="tabs"
+              @submit="handleLayoutSubmit"
+            />
+          </div>
+
+          <!-- Accordion 布局 -->
+          <div>
+            <h3>Accordion 布局</h3>
+            <CleverForm
+              ref="accordionFormRef"
+              :schemas="accordionLayoutSchemas"
+              :data="layoutModel"
+              layout-mode="accordion"
+              @submit="handleLayoutSubmit"
+            />
+          </div>
+
+          <!-- 混合布局 -->
+          <div>
+            <h3>混合布局（Tabs + Grid + Accordion）</h3>
+            <CleverForm
+              ref="mixedFormRef"
+              :schemas="mixedLayoutSchemas"
+              :data="mixedLayoutModel"
+              layout-mode="mixed"
+              :layout-config="mixedLayoutConfig"
+              @submit="handleMixedLayoutSubmit"
+            />
+          </div>
+
+          <n-alert v-if="layoutResult" type="info">
+            <pre>{{ layoutResult }}</pre>
+          </n-alert>
+        </n-space>
       </n-card>
     </n-space>
   </div>
@@ -121,6 +193,11 @@ const complexFormRef = ref()
 const dynamicFormRef = ref()
 const validationFormRef = ref()
 const groupFormRef = ref()
+const gridFormRef = ref()
+const flexFormRef = ref()
+const tabsFormRef = ref()
+const accordionFormRef = ref()
+const mixedFormRef = ref()
 
 // 结果显示
 const basicResult = ref('')
@@ -128,6 +205,7 @@ const complexResult = ref('')
 const dynamicResult = ref('')
 const validationResult = ref('')
 const groupResult = ref('')
+const layoutResult = ref('')
 
 // 基础表单
 const basicModel = reactive({
@@ -625,6 +703,532 @@ const toggleFieldVisibility = () => {
     const firstField = dynamicSchema.value[0]
     firstField.hidden = !firstField.hidden
   }
+}
+
+// 布局模式相关数据
+const layoutModel = reactive({
+  name: '张三',
+  email: 'zhangsan@example.com',
+  phone: '13800138000',
+  age: 25,
+  gender: 'male',
+  city: 'beijing',
+  address: '北京市朝阳区',
+  company: '某某公司',
+  position: '前端工程师',
+  salary: 15000,
+  description: '这是一个测试描述'
+})
+
+// Grid 布局配置
+const gridLayoutConfig = {
+  grid: {
+    cols: '1 s:2 m:3 l:4 xl:4 2xl:4',
+    xGap: 16,
+    yGap: 16,
+    responsive: true
+  }
+}
+
+// Flex 布局配置
+const flexLayoutConfig = {
+  flex: {
+    wrap: 'wrap',
+    gap: '16px',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    itemFlex: '1 1 300px',
+    itemMinWidth: '250px'
+  }
+}
+
+// 混合布局数据模型
+const mixedLayoutModel = reactive({
+  // 基本信息
+  name: '张三',
+  email: 'zhangsan@example.com',
+  phone: '13800138000',
+  gender: 'male',
+  birthday: null,
+  
+  // 地址信息
+  country: 'china',
+  province: 'beijing',
+  city: 'beijing',
+  address: '朝阳区某某街道',
+  zipCode: '100000',
+  
+  // 工作信息
+  company: '某某科技公司',
+  position: '前端工程师',
+  department: '技术部',
+  salary: 15000,
+  workYears: 3,
+  
+  // 其他信息
+  hobbies: ['reading', 'coding'],
+  skills: ['Vue', 'React', 'TypeScript'],
+  description: '这是一个混合布局的演示表单，展示了如何在一个表单中使用多种布局方式。',
+  avatar: '',
+  resume: ''
+})
+
+// 混合布局配置
+const mixedLayoutConfig = {
+  grid: {
+    cols: '1 s:2 m:3 l:4 xl:4 2xl:4',
+    xGap: 16,
+    yGap: 16,
+    responsive: true
+  },
+  flex: {
+    direction: 'row',
+    wrap: 'wrap',
+    gap: 16,
+    justify: 'flex-start',
+    align: 'flex-start'
+  },
+  tabs: {
+    type: 'line',
+    placement: 'top'
+  },
+  accordion: {
+    accordion: true,
+    defaultExpandedNames: ['basic-info'],
+    arrowPlacement: 'left'
+  }
+}
+
+// 基础布局字段
+const layoutSchemas = [
+  {
+    field: 'name',
+    label: '姓名',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入姓名' },
+    rules: [{ required: true, message: '请输入姓名' }],
+    giProps: { span: 1 }
+  },
+  {
+    field: 'email',
+    label: '邮箱',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入邮箱' },
+    rules: [{ required: true, type: 'email', message: '请输入正确的邮箱' }],
+    giProps: { span: 1 }
+  },
+  {
+    field: 'phone',
+    label: '手机号',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入手机号' },
+    giProps: { span: 1 }
+  },
+  {
+    field: 'age',
+    label: '年龄',
+    component: 'NInputNumber',
+    componentProps: { placeholder: '请输入年龄', min: 1, max: 120 },
+    giProps: { span: 1 }
+  }
+]
+
+// Flex 布局字段（带自定义布局属性）
+const flexLayoutSchemas = [
+  {
+    field: 'name',
+    label: '姓名',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入姓名' },
+    layout: { flex: '1 1 200px', minWidth: '180px' }
+  },
+  {
+    field: 'email',
+    label: '邮箱',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入邮箱' },
+    layout: { flex: '2 1 300px', minWidth: '250px' }
+  },
+  {
+    field: 'phone',
+    label: '手机号',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入手机号' },
+    layout: { flex: '1 1 200px', minWidth: '180px' }
+  },
+  {
+    field: 'description',
+    label: '描述',
+    component: 'NInput',
+    componentProps: { type: 'textarea', placeholder: '请输入描述' },
+    layout: { flex: '1 1 100%', minWidth: '100%' },
+    breakLine: true
+  }
+]
+
+// Tabs 布局字段（带分组）
+const tabsLayoutSchemas = [
+  {
+    field: 'name',
+    label: '姓名',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入姓名' },
+    group: '基本信息',
+    giProps: { span: 1 }
+  },
+  {
+    field: 'email',
+    label: '邮箱',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入邮箱' },
+    group: '基本信息',
+    giProps: { span: 1 }
+  },
+  {
+    field: 'phone',
+    label: '手机号',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入手机号' },
+    group: '联系方式',
+    giProps: { span: 1 }
+  },
+  {
+    field: 'address',
+    label: '地址',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入地址' },
+    group: '联系方式',
+    giProps: { span: 1 }
+  },
+  {
+    field: 'company',
+    label: '公司',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入公司' },
+    group: '工作信息',
+    giProps: { span: 1 }
+  },
+  {
+    field: 'position',
+    label: '职位',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入职位' },
+    group: '工作信息',
+    giProps: { span: 1 }
+  }
+]
+
+// Accordion 布局字段（带分组）
+const accordionLayoutSchemas = [
+  {
+    field: 'name',
+    label: '姓名',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入姓名' },
+    group: '个人信息',
+    order: 1,
+    giProps: { span: 1 }
+  },
+  {
+    field: 'age',
+    label: '年龄',
+    component: 'NInputNumber',
+    componentProps: { placeholder: '请输入年龄' },
+    group: '个人信息',
+    order: 2,
+    giProps: { span: 1 }
+  },
+  {
+    field: 'email',
+    label: '邮箱',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入邮箱' },
+    group: '联系信息',
+    order: 1,
+    giProps: { span: 1 }
+  },
+  {
+    field: 'phone',
+    label: '手机号',
+    component: 'NInput',
+    componentProps: { placeholder: '请输入手机号' },
+    group: '联系信息',
+    order: 2,
+    giProps: { span: 1 }
+  },
+  {
+    field: 'salary',
+    label: '薪资',
+    component: 'NInputNumber',
+    componentProps: { placeholder: '请输入薪资' },
+    group: '薪资信息',
+    order: 1,
+    giProps: { span: 1 }
+  }
+]
+
+// 混合布局字段定义（使用容器类型）
+const mixedLayoutSchemas = [
+  // 顶级Tabs容器
+  {
+    type: 'container',
+    containerType: 'tabs',
+    name: 'main-tabs',
+    children: [
+      {
+        name: 'basic-tab',
+        title: '基本信息',
+        label: '基本信息',
+        children: [
+          // 基本信息使用Grid布局
+          {
+            type: 'container',
+            containerType: 'grid',
+            config: {
+              cols: '1 s:2 m:3 l:3 xl:3 2xl:3',
+              xGap: 16,
+              yGap: 16
+            },
+            children: [
+              {
+                field: 'name',
+                label: '姓名',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入姓名' },
+                rules: [{ required: true, message: '请输入姓名' }],
+                giProps: { span: 1 }
+              },
+              {
+                field: 'email',
+                label: '邮箱',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入邮箱' },
+                rules: [{ required: true, type: 'email', message: '请输入正确的邮箱' }],
+                giProps: { span: 1 }
+              },
+              {
+                field: 'phone',
+                label: '手机号',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入手机号' },
+                giProps: { span: 1 }
+              },
+              {
+                field: 'gender',
+                label: '性别',
+                component: 'NRadioGroup',
+                componentProps: {
+                  options: [
+                    { label: '男', value: 'male' },
+                    { label: '女', value: 'female' }
+                  ]
+                },
+                giProps: { span: 1 }
+              },
+              {
+                field: 'birthday',
+                label: '生日',
+                component: 'NDatePicker',
+                componentProps: { placeholder: '请选择生日', type: 'date' },
+                giProps: { span: 1 }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        name: 'address-tab',
+        title: '地址信息',
+        label: '地址信息',
+        children: [
+          // 地址信息使用Flex布局
+          {
+            type: 'container',
+            containerType: 'flex',
+            config: {
+              direction: 'row',
+              wrap: 'wrap',
+              gap: 16,
+              justify: 'flex-start',
+              align: 'flex-start'
+            },
+            children: [
+              {
+                field: 'country',
+                label: '国家',
+                component: 'NSelect',
+                componentProps: {
+                  placeholder: '请选择国家',
+                  options: [
+                    { label: '中国', value: 'china' },
+                    { label: '美国', value: 'usa' },
+                    { label: '日本', value: 'japan' }
+                  ]
+                },
+                layout: { flex: '1 1 200px', minWidth: '180px' }
+              },
+              {
+                field: 'province',
+                label: '省份',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入省份' },
+                layout: { flex: '1 1 200px', minWidth: '180px' }
+              },
+              {
+                field: 'city',
+                label: '城市',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入城市' },
+                layout: { flex: '1 1 200px', minWidth: '180px' }
+              },
+              {
+                field: 'zipCode',
+                label: '邮编',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入邮编' },
+                layout: { flex: '1 1 150px', minWidth: '120px' }
+              },
+              {
+                field: 'address',
+                label: '详细地址',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入详细地址' },
+                layout: { flex: '1 1 100%', minWidth: '100%' }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        name: 'work-tab',
+        title: '工作信息',
+        label: '工作信息',
+        children: [
+          // 工作信息使用Accordion布局
+          {
+            type: 'container',
+            containerType: 'accordion',
+            config: {
+              accordion: false, // 允许多个同时展开
+              defaultExpandedNames: ['company-info', 'position-info'] // 默认展开公司信息和职位信息
+            },
+            children: [
+              {
+                name: 'company-info',
+                title: '公司信息',
+                label: '公司信息',
+                children: [
+                  {
+                    type: 'container',
+                    containerType: 'grid',
+                    config: {
+                      cols: '1 s:2 m:2 l:2 xl:2 2xl:2',
+                      xGap: 16,
+                      yGap: 16
+                    },
+                    children: [
+                      {
+                        field: 'company',
+                        label: '公司名称',
+                        component: 'NInput',
+                        componentProps: { placeholder: '请输入公司名称' },
+                        giProps: { span: 1 }
+                      },
+                      {
+                        field: 'department',
+                        label: '部门',
+                        component: 'NInput',
+                        componentProps: { placeholder: '请输入部门' },
+                        giProps: { span: 1 }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                name: 'position-info',
+                title: '职位信息',
+                label: '职位信息',
+                children: [
+                  {
+                    type: 'container',
+                    containerType: 'grid',
+                    config: {
+                      cols: '1 s:2 m:3 l:3 xl:3 2xl:3',
+                      xGap: 16,
+                      yGap: 16
+                    },
+                    children: [
+                      {
+                        field: 'position',
+                        label: '职位',
+                        component: 'NInput',
+                        componentProps: { placeholder: '请输入职位' },
+                        giProps: { span: 1 }
+                      },
+                      {
+                        field: 'salary',
+                        label: '薪资',
+                        component: 'NInputNumber',
+                        componentProps: { placeholder: '请输入薪资', min: 0 },
+                        giProps: { span: 1 }
+                      },
+                      {
+                        field: 'workYears',
+                        label: '工作年限',
+                        component: 'NInputNumber',
+                        componentProps: { placeholder: '请输入工作年限', min: 0 },
+                        giProps: { span: 1 }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        name: 'other-tab',
+        title: '其他信息',
+        label: '其他信息',
+        children: [
+          {
+            field: 'hobbies',
+            label: '爱好',
+            component: 'NDynamicTags',
+            componentProps: { placeholder: '请输入爱好' }
+          },
+          {
+            field: 'skills',
+            label: '技能',
+            component: 'NDynamicTags',
+            componentProps: { placeholder: '请输入技能' }
+          },
+          {
+            field: 'description',
+            label: '个人描述',
+            component: 'NInput',
+            componentProps: {
+              type: 'textarea',
+              placeholder: '请输入个人描述',
+              rows: 4
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
+
+// 布局提交处理
+const handleLayoutSubmit = (data: any) => {
+  layoutResult.value = `表单提交成功：\n${JSON.stringify(data, null, 2)}`
+}
+
+// 混合布局提交处理
+const handleMixedLayoutSubmit = (data: any) => {
+  layoutResult.value = `混合布局表单提交成功：\n${JSON.stringify(data, null, 2)}`
 }
 </script>
 

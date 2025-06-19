@@ -70,6 +70,13 @@ function getFormData(): Record<string, any> {
   return cleverFormRef.value ? cleverFormRef.value.getFormData() : {}
 }
 
+function submit() {
+  if (props.isPopup) {
+    return cleverPopupFormRef.value ? cleverPopupFormRef.value.submit() : ''
+  }
+  return cleverFormRef.value ? cleverFormRef.value.submit() : ''
+}
+
 const getProps = computed(() => {
   return { ...props, ...attrs }
 })
@@ -99,10 +106,12 @@ function open(data: Record<string, any>, apiFn?: GetApiFn<Record<string, any>>) 
 
 defineExpose({
   resetFields,
+  reset:resetFields,
   setFieldValue,
   getFieldValue,
   setFormData,
   getFormData,
+  submit,
   open,
   showPopup,
   hidePopup

@@ -1,6 +1,6 @@
 # CleverForm 智能表单
 
-基于配置的智能表单组件，支持动态表单生成、验证、联动等功能。
+基于配置的智能表单组件，支持动态表单生成、验证、联动等功能。支持多种布局模式：Grid、Flex、Tabs、Accordion 和混合布局。
 
 ## 基础用法
 
@@ -237,6 +237,264 @@ const handleValidate = (errors) => {
   }
 }
 </script>
+```
+
+## 布局模式
+
+### Grid 布局（默认）
+
+网格布局，适合规整的表单结构。
+
+```vue
+<template>
+  <CleverForm
+    :schemas="schemas"
+    layout-mode="grid"
+    :layout-config="{
+      grid: {
+        cols: '1 s:2 m:3 l:4 xl:4 2xl:4',
+        xGap: 16,
+        yGap: 16
+      }
+    }"
+  />
+</template>
+```
+
+### Flex 布局
+
+弹性布局，适合需要灵活排列的表单。
+
+```vue
+<template>
+  <CleverForm
+    :schemas="schemas"
+    layout-mode="flex"
+    :layout-config="{
+      flex: {
+        direction: 'row',
+        wrap: 'wrap',
+        gap: 16,
+        justify: 'flex-start',
+        align: 'flex-start'
+      }
+    }"
+  />
+</template>
+```
+
+### Tabs 布局
+
+标签页布局，适合分组展示表单内容。
+
+```vue
+<template>
+  <CleverForm
+    :schemas="tabsSchemas"
+    layout-mode="tabs"
+    :layout-config="{
+      tabs: {
+        type: 'line',
+        placement: 'top'
+      }
+    }"
+  />
+</template>
+
+<script setup>
+const tabsSchemas = [
+  {
+    field: 'name',
+    label: '姓名',
+    component: 'NInput',
+    group: 'basic-info',
+    groupTitle: '基本信息'
+  },
+  {
+    field: 'email',
+    label: '邮箱',
+    component: 'NInput',
+    group: 'basic-info'
+  },
+  {
+    field: 'address',
+    label: '地址',
+    component: 'NInput',
+    group: 'contact-info',
+    groupTitle: '联系信息'
+  }
+]
+</script>
+```
+
+### Accordion 布局
+
+手风琴布局，适合可折叠的分组表单。
+
+```vue
+<template>
+  <CleverForm
+    :schemas="accordionSchemas"
+    layout-mode="accordion"
+    :layout-config="{
+      accordion: {
+        accordion: true,
+        defaultExpandedNames: ['basic-info']
+      }
+    }"
+  />
+</template>
+
+<script setup>
+const accordionSchemas = [
+  {
+    field: 'name',
+    label: '姓名',
+    component: 'NInput',
+    group: 'basic-info',
+    groupTitle: '基本信息',
+    order: 1
+  },
+  {
+    field: 'description',
+    label: '描述',
+    component: 'NInput',
+    group: 'detail-info',
+    groupTitle: '详细信息',
+    order: 2
+  }
+]
+</script>
+```
+
+### 混合布局（新特性）
+
+混合布局允许在一个表单中使用多种布局方式，通过容器类型实现嵌套布局。
+
+```vue
+<template>
+  <CleverForm
+    :schemas="mixedSchemas"
+    layout-mode="mixed"
+    :layout-config="mixedLayoutConfig"
+  />
+</template>
+
+<script setup>
+const mixedLayoutConfig = {
+  tabs: {
+    type: 'line',
+    placement: 'top'
+  },
+  grid: {
+    cols: '1 s:2 m:3 l:3 xl:3 2xl:3',
+    xGap: 16,
+    yGap: 16
+  },
+  flex: {
+    direction: 'row',
+    wrap: 'wrap',
+    gap: 16
+  },
+  accordion: {
+    accordion: true
+  }
+}
+
+const mixedSchemas = [
+  {
+    type: 'container',
+    containerType: 'tabs',
+    name: 'main-tabs',
+    children: [
+      {
+        name: 'basic-tab',
+        title: '基本信息',
+        children: [
+          {
+            type: 'container',
+            containerType: 'grid',
+            config: {
+              cols: '1 s:2 m:3 l:3 xl:3 2xl:3',
+              xGap: 16,
+              yGap: 16
+            },
+            children: [
+              {
+                field: 'name',
+                label: '姓名',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入姓名' },
+                giProps: { span: 1 }
+              },
+              {
+                field: 'email',
+                label: '邮箱',
+                component: 'NInput',
+                componentProps: { placeholder: '请输入邮箱' },
+                giProps: { span: 1 }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        name: 'address-tab',
+        title: '地址信息',
+        children: [
+          {
+            type: 'container',
+            containerType: 'accordion',
+            children: [
+              {
+                name: 'home-address',
+                title: '家庭地址',
+                children: [
+                  {
+                    field: 'homeAddress',
+                    label: '详细地址',
+                    component: 'NInput',
+                    componentProps: { type: 'textarea', rows: 3 }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+</script>
+```
+
+## 容器类型
+
+### 支持的容器类型
+
+- **tabs**: 标签页容器
+- **accordion**: 手风琴容器
+- **grid**: 网格容器
+- **flex**: 弹性布局容器
+- **card**: 卡片容器
+- **divider**: 分割线容器
+
+### 容器 Schema 结构
+
+```typescript
+interface FormContainerSchema {
+  type: 'container'
+  containerType: 'tabs' | 'accordion' | 'grid' | 'flex' | 'card' | 'divider'
+  name?: string
+  title?: string
+  description?: string
+  children: (FormSchema | FormContainerSchema)[]
+  config?: Record<string, any>
+  style?: Record<string, any>
+  className?: string
+  ifShow?: (formModel: any, methods: any) => boolean
+  order?: number
+}
 ```
 
 ## API

@@ -152,14 +152,24 @@ export function useForm<T extends Record<string, any> = any>(
 
   // 获取表单项属性
   const getFormItemProps = (schema: FormSchema) => {
-    const { field, label, labelWidth, rules, required } = schema
-    return {
+    const { field, label, labelWidth, rules, required, giProps } = schema
+    const baseProps = {
       path: field,
       label,
       labelWidth: labelWidth || props.labelWidth,
       rule: rules,
       required
     }
+    
+    // 如果是Grid容器中的字段，添加giProps
+    if (giProps) {
+      return {
+        ...baseProps,
+        ...giProps
+      }
+    }
+    
+    return baseProps
   }
 
   // 获取表单属性
@@ -214,6 +224,50 @@ export function useForm<T extends Record<string, any> = any>(
     }
   })
 
+  // 新增布局相关计算属性
+  const getFlexStyle = computed(() => {
+    const config = props.layoutConfig?.flex || {}
+    return {
+      display: 'flex',
+      flexWrap: config.wrap || 'wrap',
+      gap: config.gap || '16px',
+      alignItems: config.alignItems || 'flex-start',
+      justifyContent: config.justifyContent || 'flex-start'
+    }
+  })
+
+  const getFlexItemStyle = (schema: FormSchema) => {
+    const config = props.layoutConfig?.flex || {}
+    return {
+      flex: schema.layout?.flex || config.itemFlex || '1 1 auto',
+      minWidth: schema.layout?.minWidth || config.itemMinWidth || '200px',
+      maxWidth: schema.layout?.maxWidth || config.itemMaxWidth || 'none'
+    }
+  }
+
+  const getGroupedSchemas = computed(() => {
+    const groups = new Map()
+    
+    props.schemas.forEach(schema => {
+      const groupName = schema.group || 'default'
+      if (!groups.has(groupName)) {
+        groups.set(groupName, {
+          name: groupName,
+          title: groupName === 'default' ? '基本信息' : groupName,
+          fields: []
+        })
+      }
+      groups.get(groupName).fields.push(schema)
+    })
+    
+    return Array.from(groups.values())
+  })
+
+  const getFormComponent = (schema: FormSchema) => {
+    // 根据schema.component返回对应的组件名
+    return schema.component || 'NInput'
+  }
+
   // 方法集合
   const methods: CleverFormMethods<T> = {
     resetFields,
@@ -249,6 +303,10 @@ export function useForm<T extends Record<string, any> = any>(
     isInline,
     getSubmitBtnOptions,
     getResetBtnOptions,
+    getFlexStyle,
+    getFlexItemStyle,
+    getGroupedSchemas,
+    getFormComponent,
     methods
   }
 }

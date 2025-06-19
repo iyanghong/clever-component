@@ -123,5 +123,22 @@ export default {
     type: Boolean,
     required: false,
     default: () => false
+  },
+  layoutMode: {
+    type: String as PropType<'grid' | 'flex' | 'tabs' | 'accordion'>,
+    required: false,
+    default: () => 'grid'
+  },
+  layoutConfig: {
+    type: Object,
+    required: false,
+    default: () => ({
+      grid: {
+        cols: '1 s:1 m:2 l:3 xl:4 2xl:4',
+        xGap: 16,
+        yGap: 16,
+        responsive: true
+      }
+    })
   }
 }

@@ -59,6 +59,50 @@ export interface FormFieldSchema<T extends Record<string, any> = any> {
   onChange?: (newValue: any, oldValue: any, methods: CleverFormMethods<T>) => void | Promise<void>
   /** 显示模式 */
   showMode?: 'edit' | 'detail' | 'disable'
+  
+  /** 字段布局配置 */
+  layout?: {
+    /** 占用列数 */
+    span?: number
+    /** 偏移列数 */
+    offset?: number
+    /** 响应式配置 */
+    responsive?: {
+      xs?: number | { span?: number; offset?: number }
+      sm?: number | { span?: number; offset?: number }
+      md?: number | { span?: number; offset?: number }
+      lg?: number | { span?: number; offset?: number }
+      xl?: number | { span?: number; offset?: number }
+      xxl?: number | { span?: number; offset?: number }
+    }
+    /** 自定义样式 */
+    style?: Record<string, any>
+    /** 自定义类名 */
+    className?: string
+  }
+  
+  /** 字段分组 */
+  group?: {
+    /** 分组名称 */
+    name: string
+    /** 分组标题 */
+    title?: string
+    /** 分组描述 */
+    description?: string
+    /** 分组样式 */
+    style?: Record<string, any>
+    /** 是否可折叠 */
+    collapsible?: boolean
+    /** 默认是否展开 */
+    defaultExpanded?: boolean
+  }
+  
+  /** 字段排序权重 */
+  order?: number
+  
+  /** 换行控制 */
+  breakLine?: boolean
+  
   /** 其他属性 */
   [key: string]: any
 }
@@ -82,7 +126,33 @@ export interface FormGroupSchema<T extends Record<string, any> = any> {
   ifShow?: (formModel: T, methods: CleverFormMethods<T>) => boolean
 }
 
-export type FormSchema<T extends Record<string, any> = any> = FormFieldSchema<T> | FormGroupSchema<T>
+// 容器类型Schema
+export interface FormContainerSchema<T extends Record<string, any> = any> {
+  /** 类型标识 */
+  type: 'container'
+  /** 容器类型 */
+  containerType: 'tabs' | 'accordion' | 'grid' | 'flex' | 'card' | 'divider'
+  /** 容器名称 */
+  name?: string
+  /** 容器标题 */
+  title?: string
+  /** 容器描述 */
+  description?: string
+  /** 子元素 */
+  children: (FormSchema<T> | FormContainerSchema<T>)[]
+  /** 容器配置 */
+  config?: Record<string, any>
+  /** 容器样式 */
+  style?: Record<string, any>
+  /** 容器类名 */
+  className?: string
+  /** 条件显示函数 */
+  ifShow?: (formModel: T, methods: CleverFormMethods<T>) => boolean
+  /** 排序权重 */
+  order?: number
+}
+
+export type FormSchema<T extends Record<string, any> = any> = FormFieldSchema<T> | FormGroupSchema<T> | FormContainerSchema<T>
 
 export interface FormApiConfig<T extends Record<string, any> = any> {
   // 获取单条数据的API
@@ -156,6 +226,13 @@ export interface CleverFormProps<T extends Record<string, any> = any> {
   submitOnReset?: boolean
   /** 折叠行数 */
   collapsedRows?: number
+  
+  /** 布局模式 */
+  layoutMode?: 'grid' | 'flex' | 'tabs' | 'accordion' | 'mixed'
+  
+  /** 布局配置 */
+  layoutConfig?: LayoutConfig
+  
   /** 其他属性 */
   [key: string]: any
 }
@@ -172,6 +249,69 @@ export interface FormActionType {
 
 export type RegisterFn = (formInstance: FormActionType) => void
 export type UseFormReturnType = [RegisterFn, FormActionType]
+
+// 布局配置类型
+export interface LayoutConfig {
+  /** 网格布局配置 */
+  grid?: {
+    /** 列数配置 */
+    cols?: string | number
+    /** 行间距 */
+    xGap?: number
+    /** 列间距 */
+    yGap?: number
+    /** 响应式断点 */
+    responsive?: boolean
+  }
+  
+  /** Flex布局配置 */
+  flex?: {
+    /** 主轴方向 */
+    direction?: 'row' | 'column'
+    /** 换行方式 */
+    wrap?: 'nowrap' | 'wrap' | 'wrap-reverse'
+    /** 主轴对齐 */
+    justify?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly'
+    /** 交叉轴对齐 */
+    align?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline'
+    /** 间距 */
+    gap?: number
+  }
+  
+  /** 标签页布局配置 */
+  tabs?: {
+    /** 标签页位置 */
+    placement?: 'top' | 'right' | 'bottom' | 'left'
+    /** 标签页类型 */
+    type?: 'line' | 'card' | 'segment'
+    /** 是否可关闭 */
+    closable?: boolean
+    /** 是否可添加 */
+    addable?: boolean
+  }
+  
+  /** 手风琴布局配置 */
+  accordion?: {
+    /** 是否手风琴模式 */
+    accordion?: boolean
+    /** 默认展开的面板 */
+    defaultExpandedNames?: string[]
+    /** 展开图标位置 */
+    arrowPlacement?: 'left' | 'right'
+  }
+  
+  /** 卡片布局配置 */
+  card?: {
+    /** 卡片标题 */
+    title?: string
+    /** 是否有边框 */
+    bordered?: boolean
+    /** 卡片大小 */
+    size?: 'small' | 'medium' | 'large'
+    /** 是否可折叠 */
+    collapsible?: boolean
+  }
+}
 
 export function getDefaultCleverFormProps(): CleverFormProps {
   return {
@@ -193,6 +333,15 @@ export function getDefaultCleverFormProps(): CleverFormProps {
     resetButtonText: '重置',
     gridProps: { cols: '1 s:1 m:2 l:3 xl:4 2xl:4' },
     collapsedRows: 1,
-    submitOnReset: false
+    submitOnReset: false,
+    layoutMode: 'grid',
+    layoutConfig: {
+      grid: {
+        cols: '1 s:1 m:2 l:3 xl:4 2xl:4',
+        xGap: 16,
+        yGap: 16,
+        responsive: true
+      }
+    }
   }
 }
