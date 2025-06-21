@@ -1,5 +1,5 @@
 import type { DataTableColumn, DataTableProps } from 'naive-ui'
-import type { FormSchema } from '../../clever-form/src/types/form'
+import type { FormSchema } from '../../../clever-form/src/types/form.ts'
 import type {
   GetPageApiFn,
   GetApiFn,
@@ -11,13 +11,15 @@ import type {
 } from '@/types/response'
 
 // 获取全量数据的API函数类型
-export type GetAllApiFn<T = any> = (params?: Record<string, any>) => Promise<ResponseBaseModel<T[]>>
+export type GetAllApiFn<T = any> = (
+  params?: Record<string, any>
+) => Promise<ResponseBaseModel<T[]>>
 
 // 表单模式枚举
 export enum FormMode {
-  CREATE = 'create',   // 新增模式
-  EDIT = 'edit',       // 编辑模式
-  DETAIL = 'detail'    // 详情模式（只读）
+  CREATE = 'create', // 新增模式
+  EDIT = 'edit', // 编辑模式
+  DETAIL = 'detail' // 详情模式（只读）
 }
 
 // 自定义操作按钮配置
@@ -32,22 +34,22 @@ export interface CustomAction {
 
 // 操作列配置
 export interface ActionConfig {
-  width?: number                 // 操作列宽度
-  fixed?: 'left' | 'right'      // 固定位置
-  title?: string                // 操作列标题
-  show?: boolean                // 是否显示操作列
-  showView?: boolean            // 是否显示查看按钮
-  showEdit?: boolean            // 是否显示编辑按钮
-  showDelete?: boolean          // 是否显示删除按钮
+  width?: number // 操作列宽度
+  fixed?: 'left' | 'right' // 固定位置
+  title?: string // 操作列标题
+  show?: boolean // 是否显示操作列
+  showView?: boolean // 是否显示查看按钮
+  showEdit?: boolean // 是否显示编辑按钮
+  showDelete?: boolean // 是否显示删除按钮
   customButtons?: TableAction[] // 自定义操作按钮
   // 按钮文本配置
-  viewText?: string             // 查看按钮文本
-  editText?: string             // 编辑按钮文本
-  deleteText?: string           // 删除按钮文本
+  viewText?: string // 查看按钮文本
+  editText?: string // 编辑按钮文本
+  deleteText?: string // 删除按钮文本
   // 按钮属性配置
-  viewProps?: Partial<any>      // 查看按钮属性
-  editProps?: Partial<any>      // 编辑按钮属性
-  deleteProps?: Partial<any>    // 删除按钮属性
+  viewProps?: Partial<any> // 查看按钮属性
+  editProps?: Partial<any> // 编辑按钮属性
+  deleteProps?: Partial<any> // 删除按钮属性
 }
 
 export type TableColumn = DataTableColumn & {
@@ -59,6 +61,8 @@ export type TableColumn = DataTableColumn & {
   customRender?: (record: any, index: number) => any
   // 条件显示
   ifShow?: (record: any) => boolean
+
+  key?: string
 }
 
 export interface TableAction {
@@ -160,6 +164,8 @@ export interface FormConfig {
     xGap?: number
     yGap?: number
   }
+  // 弹窗配置
+  popupProps?: Record<string, any>
 }
 
 // 删除配置

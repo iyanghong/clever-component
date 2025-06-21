@@ -18,39 +18,16 @@
       show-selection-column
       show-index-column
       @form-open="handleFormOpen"
+      @save-success="handleSaveSuccess"
+      @save-error="handleSaveError"
     />
-    
-    <!-- 表单弹窗 -->
-    <NModal v-model:show="showForm" :title="formTitle" preset="dialog">
-      <CleverForm
-        ref="formRef"
-        :schemas="formSchemas"
-        :model="formData"
-        :readonly="formMode === FormMode.VIEW"
-        @submit="handleFormSubmit"
-      />
-      
-      <template #action>
-        <NSpace>
-          <NButton @click="showForm = false">取消</NButton>
-          <NButton
-            v-if="formMode !== FormMode.VIEW"
-            type="primary"
-            @click="handleFormSubmit"
-            :loading="submitting"
-          >
-            {{ formMode === FormMode.CREATE ? '创建' : '更新' }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import { NModal, NButton, NSpace, useMessage } from 'naive-ui'
-import { CleverTable, CleverForm } from '@clever-component/components'
+import { ref, reactive } from 'vue'
+import { useMessage } from 'naive-ui'
+import { CleverTable } from '@clever-component/components'
 import type { 
   TableColumn, 
   ApiConfig, 
@@ -67,27 +44,6 @@ const message = useMessage()
 
 // 表格引用
 const tableRef = ref()
-
-// 表单相关
-const showForm = ref(false)
-const formRef = ref()
-const formMode = ref<FormMode>(FormMode.CREATE)
-const submitting = ref(false)
-const formData = ref({})
-
-// 表单标题
-const formTitle = computed(() => {
-  switch (formMode.value) {
-    case FormMode.CREATE:
-      return '新增用户'
-    case FormMode.EDIT:
-      return '编辑用户'
-    case FormMode.VIEW:
-      return '查看用户'
-    default:
-      return '表单'
-  }
-})
 
 // 部门选项
 const departmentOptions = [
@@ -364,9 +320,19 @@ const apiConfig: ApiConfig = {
 
 // 表单配置
 const formConfig: FormConfig = {
+  title: '用户信息',
+  width: '600px',
   schemas: formSchemas,
-  labelWidth: 80,
-  showRequiredMark: true
+  layout: {
+    labelWidth: 80,
+    labelPlacement: 'left'
+  },
+  popupProps: {
+    preset: 'dialog',
+    style: {
+      width: '600px'
+    }
+  }
 }
 
 // 删除配置
@@ -455,30 +421,20 @@ const paginationConfig: PaginationConfig = {
 }
 
 // 处理表单打开
-function handleFormOpen(mode: FormMode, record?: any) {
-  console.log('表单打开:', mode, record)
-  formMode.value = mode
-  formData.value = record || {}
-  showForm.value = true
+function handleFormOpen(record?: any) {
+  console.log('表单打开:', record)
 }
 
-// 处理表单提交
-async function handleFormSubmit() {
-  try {
-    const valid = await formRef.value?.validate()
-    if (valid) {
-      submitting.value = true
-      const isEdit = formMode.value === FormMode.EDIT
-      await tableRef.value?.handleSave(formData.value, isEdit)
-      showForm.value = false
-      // 成功消息由 saveConfig.afterSave 处理
-    }
-  } catch (error) {
-    console.error('表单提交失败:', error)
-    message.error('操作失败')
-  } finally {
-    submitting.value = false
-  }
+// 处理保存成功
+function handleSaveSuccess(data: any, isEdit: boolean) {
+  console.log('保存成功:', data, isEdit)
+  message.success(isEdit ? '更新成功' : '创建成功')
+}
+
+// 处理保存失败
+function handleSaveError(error: any, isEdit: boolean) {
+  console.error('保存失败:', error, isEdit)
+  message.error(isEdit ? '更新失败' : '创建失败')
 }
 </script>
 

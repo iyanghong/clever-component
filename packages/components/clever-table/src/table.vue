@@ -103,18 +103,33 @@
     <NSpace v-if="paginationProps"  justify="end">
       <NPagination v-bind="paginationProps" />
     </NSpace>
+
+
+    <!-- 表单弹窗 -->
+    <CleverForm 
+      v-if="formConfig" 
+      ref="formPopupRef" 
+      :schemas="formConfig.schemas" 
+      :is-popup="true"
+      :disabled="formPopupDisabled"
+      :popup-option="{
+        title: formConfig.title || '表单',
+        width: formConfig.width || '600px',
+        ...formConfig.popupProps
+      }"
+      @submit="handleFormSave"
+    />
   </NSpace>
 </template>
 <script setup lang="ts">
-import { computed, h } from 'vue'
+import { computed, h, ref } from 'vue'
 import { NDataTable, NPagination, NSpace, NButton, NCard, NCollapse, NCollapseItem, NIcon } from 'naive-ui'
 import { ChevronDownOutline, ChevronUpOutline, AddOutline, TrashOutline } from '@vicons/ionicons5'
 import CleverForm from '../../clever-form/index.vue'
 import { useTable } from './hook/use-table'
 import defaultCleverTableProps from './default-props'
 import { FormMode } from './types'
-import type { CleverTableMethods } from './types'
-
+import type { CleverTableMethods,CleverTableProps } from './types'
 const props = defineProps(defaultCleverTableProps)
 const emit = defineEmits<{
   'update:checkedRowKeys': [keys: (string | number)[]]
@@ -129,6 +144,9 @@ const emit = defineEmits<{
   'delete-error': [error: any, record: any]
 }>()
 
+// 导入必要的依赖
+import { useMessage, useDialog } from 'naive-ui'
+
 const {
   tableData,
   loading,
@@ -138,7 +156,6 @@ const {
   searchCollapsed,
   processedColumns,
   handleRefresh,
-  handleOpenForm,
   handleDelete,
   handleBatchDelete,
   handleSave,
@@ -154,7 +171,50 @@ const {
   handleSearch,
   handleResetSearch,
   toggleSearchCollapsed
-} = useTable(props, emit)
+} : Record<string, any> = useTable({...props,onFormOpen:handleOpenForm} as CleverTableProps, emit)
+
+
+const formPopupRef = ref()
+const formPopupDisabled = ref<boolean>(false)
+// 自定义的表单打开方法
+async function handleOpenForm(mode: FormMode, record?: any) {
+  if (!props.formConfig || !formPopupRef.value) {
+    console.warn('表单配置或表单引用不存在')
+    return
+  }
+
+  try {
+    formPopupDisabled.value = (mode == 'detail')
+    // 打开表单弹窗
+    formPopupRef.value.open(record)
+    
+    // 触发表单打开事件
+    emit('form-open', record)
+  } catch (error) {
+    console.error('打开表单失败:', error)
+    const message = useMessage()
+    message.error('打开表单失败')
+  }
+}
+
+// 处理表单保存
+async function handleFormSave(formData: any) {
+  if (!props.formConfig) return
+  
+  // 判断是否为编辑模式（如果有 id 字段则认为是编辑）
+  const idField = props.rowKey || 'id'
+  const isEdit = !!(formData[idField])
+  
+  try {
+    const success = await handleSave(formData, isEdit)
+    if (success) {
+      // 保存成功，关闭弹窗
+      formPopupRef.value?.hidePopup()
+    }
+  } catch (error) {
+    console.error('保存失败:', error)
+  }
+}
 
 // 计算属性：表格属性
 const tableProps = computed(() => {
@@ -233,7 +293,7 @@ function handleSearchReset() {
 // 暴露方法
 const methods: CleverTableMethods = {
   handleRefresh,
-  handleOpenForm,
+  handleOpenForm, // 使用我们自定义的方法
   handleDelete,
   handleBatchDelete,
   handleSave,

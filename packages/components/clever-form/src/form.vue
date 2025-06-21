@@ -122,7 +122,7 @@ defineExpose({
 
 <template>
   <div class="clever-form">
-    <NForm ref="formRef" v-bind="getProps" :model="formModel" @keydown.enter="handleSubmit">
+    <NForm ref="formRef" v-bind="getProps" :model="formModel" @keydown.enter="handleSubmit" :disabled="true">
       <!-- 混合布局模式 -->
       <template v-if="layoutMode === 'mixed'">
         <FormRenderer 

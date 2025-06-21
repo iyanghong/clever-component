@@ -82,6 +82,7 @@ const getProps = computed(() => {
 })
 
 function open(data: Record<string, any>, apiFn?: GetApiFn<Record<string, any>>) {
+
   visiblePopup.value = true
   nextTick(async () => {
     if (isObject(data)) {

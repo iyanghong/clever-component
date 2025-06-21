@@ -140,5 +140,9 @@ export default {
         responsive: true
       }
     })
+  },
+  disabled: {
+    type: Boolean,
+    default: () => false
   }
 }

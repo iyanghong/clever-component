@@ -2,7 +2,11 @@ import { ref, computed, watch, nextTick, unref } from 'vue'
 import type { Ref } from 'vue'
 import { cloneDeep } from 'lodash-es'
 import { isArray, isFunction, isObject } from '@/utils/is'
-import type { CleverFormProps, FormSchema, CleverFormMethods } from '../types/form'
+import type {
+  CleverFormProps,
+  FormSchema,
+  CleverFormMethods
+} from '../types/form'
 
 export function useForm<T extends Record<string, any> = any>(
   props: CleverFormProps<T>,
@@ -18,18 +22,18 @@ export function useForm<T extends Record<string, any> = any>(
   const initFormModel = () => {
     const model = {} as T
     const fieldKeys = {} as Record<string, string>
-    
-    props.schemas.forEach((schema) => {
+
+    props.schemas.forEach(schema => {
       const field = schema.field as string
       model[field as keyof T] = schema.defaultValue ?? null
       fieldKeys[field] = `${field}-${Date.now()}`
     })
-    
+
     // 合并传入的数据
     if (props.data && isObject(props.data)) {
       Object.assign(model, props.data)
     }
-    
+
     formModel.value = model
     formItemFieldKeys.value = fieldKeys
   }
@@ -46,7 +50,7 @@ export function useForm<T extends Record<string, any> = any>(
   // 监听data变化
   watch(
     () => props.data,
-    (newData) => {
+    newData => {
       if (newData && isObject(newData)) {
         Object.assign(formModel.value, newData)
       }
@@ -58,7 +62,8 @@ export function useForm<T extends Record<string, any> = any>(
   const setFieldValue = (field: keyof T, value: any) => {
     formModel.value[field] = value
     // 更新字段key以触发重新渲染
-    formItemFieldKeys.value[field as string] = `${field as string}-${Date.now()}`
+    formItemFieldKeys.value[field as string] =
+      `${field as string}-${Date.now()}`
   }
 
   // 获取单个字段值
@@ -112,10 +117,10 @@ export function useForm<T extends Record<string, any> = any>(
       if (formRef.value) {
         await formRef.value.validate()
       }
-      
+
       const formData = getFormData()
       emit('submit', formData)
-      
+
       if (props.submitFunc && isFunction(props.submitFunc)) {
         await props.submitFunc()
       }
@@ -160,7 +165,7 @@ export function useForm<T extends Record<string, any> = any>(
       rule: rules,
       required
     }
-    
+
     // 如果是Grid容器中的字段，添加giProps
     if (giProps) {
       return {
@@ -168,7 +173,7 @@ export function useForm<T extends Record<string, any> = any>(
         ...giProps
       }
     }
-    
+
     return baseProps
   }
 
@@ -179,7 +184,8 @@ export function useForm<T extends Record<string, any> = any>(
       size: props.size,
       labelPlacement: props.labelPlacement,
       labelWidth: props.labelWidth,
-      inline: props.inline
+      inline: props.inline,
+      disabled: props.disabled
     }
   })
 
@@ -195,11 +201,11 @@ export function useForm<T extends Record<string, any> = any>(
     if (!props.showAdvancedButton) {
       return props.schemas
     }
-    
+
     if (collapsed.value) {
       return props.schemas.slice(0, props.collapsedRows || 1)
     }
-    
+
     return props.schemas
   })
 
@@ -247,7 +253,7 @@ export function useForm<T extends Record<string, any> = any>(
 
   const getGroupedSchemas = computed(() => {
     const groups = new Map()
-    
+
     props.schemas.forEach(schema => {
       const groupName = schema.group || 'default'
       if (!groups.has(groupName)) {
@@ -259,7 +265,7 @@ export function useForm<T extends Record<string, any> = any>(
       }
       groups.get(groupName).fields.push(schema)
     })
-    
+
     return Array.from(groups.values())
   })
 
