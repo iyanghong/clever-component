@@ -125,7 +125,7 @@ export default {
     default: () => false
   },
   layoutMode: {
-    type: String as PropType<'grid' | 'flex' | 'tabs' | 'accordion'>,
+    type: String as PropType<'grid' | 'flex' | 'tabs' | 'accordion' | 'mixed'>,
     required: false,
     default: () => 'grid'
   },

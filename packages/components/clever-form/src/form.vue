@@ -4,7 +4,7 @@ import { useForm } from '@/components/clever-form/src/hook/use-form'
 import { isArray } from '@/utils/is'
 import defaultCleverFormProps from './default-props'
 import FormRenderer from './components/FormRenderer.vue'
-import type { FormSchema } from './types/form'
+import type { FormSchema, FormFieldSchema, FormGroupSchema, FormContainerSchema } from './types/form'
 import {
   NButton,
   NCheckbox,
@@ -48,6 +48,7 @@ const {
   getComponentProps,
   getFormItemProps,
   loading,
+  collapsed,
   getProps,
   getGrid,
   getSchema,
@@ -85,7 +86,24 @@ const formMethods = computed(() => ({
 // 从props中获取layoutMode，支持mixed模式
 const layoutMode = computed(() => props.layoutMode || 'grid')
 
+// 类型守卫函数
+const isFormFieldSchema = (schema: FormSchema): schema is FormFieldSchema => {
+  return 'field' in schema && 'component' in schema
+}
+
+const isFormGroupSchema = (schema: FormSchema): schema is FormGroupSchema => {
+  return 'title' in schema && 'fields' in schema && !('type' in schema)
+}
+
+const isFormContainerSchema = (schema: FormSchema): schema is FormContainerSchema => {
+  return 'type' in schema && schema.type === 'container'
+}
+
 const ifShowFormItem = (schema: FormSchema) => {
+  if (!isFormFieldSchema(schema)) {
+    return true
+  }
+  
   if (schema.ifShow) {
     const isShow = schema.ifShow(formModel.value, formModel.value[schema.field as string] || '', methods)
     if (isShow && schema.component === 'NDynamicTags') {
@@ -104,7 +122,7 @@ const ifShowFormItem = (schema: FormSchema) => {
 
 // 处理字段值变化
 const handleFieldChange = (schema: FormSchema, newValue: any, oldValue: any) => {
-  if (schema.onChange) {
+  if (isFormFieldSchema(schema) && schema.onChange) {
     schema.onChange(newValue, oldValue, methods)
   }
 }
@@ -135,11 +153,11 @@ defineExpose({
       <!-- Grid Layout -->
       <template v-if="layoutMode === 'grid'">
         <NGrid v-bind="getGrid">
-          <template v-for="schema in getSchema" :key="schema.field">
-            <NGi v-if="ifShowFormItem(schema)" v-bind="getComponentProps(schema, 'gi')">
+          <template v-for="schema in getSchema" :key="isFormFieldSchema(schema) ? schema.field : `group-${Math.random()}`">
+            <NGi v-if="ifShowFormItem(schema) && isFormFieldSchema(schema)" v-bind="getComponentProps(schema)">
               <NFormItem v-bind="getFormItemProps(schema)">
                 <!-- 标签名右侧温馨提示 -->
-                <template v-if="schema.labelMessage" #label>
+                <template v-if="isFormFieldSchema(schema) && schema.labelMessage" #label>
                   {{ schema.label }}
                   <NTooltip trigger="hover" :style="schema.labelMessageStyle">
                     <template #trigger>
@@ -156,15 +174,15 @@ defineExpose({
                 </template>
 
                 <!-- 判断插槽 -->
-                <template v-if="schema.slot">
+                <template v-if="isFormFieldSchema(schema) && schema.slot">
                   <slot :name="schema.slot" :model="formModel" :field="schema.field"
                     :value="formModel[schema.field as string]"></slot>
                 </template>
 
                 <!-- NCheckbox -->
-                <template v-else-if="schema.component === 'NCheckbox'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NCheckbox'">
                   <NCheckboxGroup v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])">
+                    @update:value="(val:any) => handleFieldChange(schema, val, formModel[schema.field as string])">
                     <NSpace>
                       <NCheckbox v-for="item in schema.componentProps?.options || []" :key="item.value"
                         :value="item.value" :label="item.label" />
@@ -173,7 +191,7 @@ defineExpose({
                 </template>
 
                 <!-- NRadioGroup -->
-                <template v-else-if="schema.component === 'NRadioGroup'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NRadioGroup'">
                   <NRadioGroup v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])">
                     <NSpace>
@@ -186,68 +204,68 @@ defineExpose({
                 </template>
 
                 <!-- NSelect -->
-                <template v-else-if="schema.component === 'NSelect'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NSelect'">
                   <NSelect v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NDatePicker -->
-                <template v-else-if="schema.component === 'NDatePicker'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NDatePicker'">
                   <NDatePicker v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NTimePicker -->
-                <template v-else-if="schema.component === 'NTimePicker'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NTimePicker'">
                   <NTimePicker v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NInputNumber -->
-                <template v-else-if="schema.component === 'NInputNumber'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NInputNumber'">
                   <NInputNumber v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NSwitch -->
-                <template v-else-if="schema.component === 'NSwitch'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NSwitch'">
                   <NSwitch v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NSlider -->
-                <template v-else-if="schema.component === 'NSlider'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NSlider'">
                   <NSlider v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NRate -->
-                <template v-else-if="schema.component === 'NRate'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NRate'">
                   <NRate v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NDynamicTags -->
-                <template v-else-if="schema.component === 'NDynamicTags'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NDynamicTags'">
                   <NDynamicTags v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
+                    @update:value="(val:any) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- NInputTextArea -->
-                <template v-else-if="schema.component === 'NInputTextArea'">
+                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NInputTextArea'">
                   <NInput v-model:value="formModel[schema.field as string]" type="textarea"
                     v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- 默认 NInput -->
-                <template v-else>
+                <template v-else-if="isFormFieldSchema(schema)">
                   <NInput v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
                     @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
                 </template>
 
                 <!-- 后缀 -->
-                <template v-if="schema.suffix">
+                <template v-if="isFormFieldSchema(schema) && schema.suffix">
                   <span class="ml-2 text-gray-500">{{ schema.suffix }}</span>
                 </template>
               </NFormItem>
