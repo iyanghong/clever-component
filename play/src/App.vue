@@ -124,10 +124,11 @@ const menuOptions: MenuOption[] = [
         icon: () => h(GridOutline)
       },
       {
-        label: 'CleverDataTable 数据表格',
-        key: 'clever-data-table',
-        icon: () => h(DocumentTextOutline)
-      }
+        label: 'CleverTable CRUD',
+        key: 'clever-table-crud',
+        icon: () => h(GridOutline)
+      },
+
     ]
   }
 ]

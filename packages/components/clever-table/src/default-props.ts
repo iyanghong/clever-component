@@ -1,5 +1,5 @@
 import type { PropType } from 'vue'
-import type { CleverTableProps, TableColumn, TableAction, HeaderAction, SearchConfig, ApiConfig, PaginationConfig } from './types'
+import type { CleverTableProps, TableColumn, TableAction, HeaderAction, SearchConfig, ApiConfig, PaginationConfig, FormConfig, DeleteConfig, SaveConfig, ActionConfig, FormMode } from './types'
 
 export const defaultCleverTableProps = {
   // 表格列配置
@@ -51,6 +51,21 @@ export const defaultCleverTableProps = {
     type: Object as PropType<ApiConfig>,
     default: () => ({})
   },
+  // 表单配置
+  formConfig: {
+    type: Object as PropType<FormConfig>,
+    default: () => ({})
+  },
+  // 删除配置
+  deleteConfig: {
+    type: Object as PropType<DeleteConfig>,
+    default: () => ({})
+  },
+  // 保存配置
+  saveConfig: {
+    type: Object as PropType<SaveConfig>,
+    default: () => ({})
+  },
   // 分页配置
   paginationConfig: {
     type: Object as PropType<PaginationConfig>,
@@ -63,6 +78,21 @@ export const defaultCleverTableProps = {
       showQuickJumper: true,
       showSizePicker: true
     })
+  },
+  // 操作列配置
+  actionConfig: {
+    type: Object as PropType<ActionConfig>,
+    default: () => ({})
+  },
+  // 是否自动显示操作列
+  autoShowActions: {
+    type: Boolean,
+    default: true
+  },
+  // 自定义ID字段名
+  idField: {
+    type: String,
+    default: 'id'
   },
   // 是否显示操作列
   showActionColumn: {
@@ -148,6 +178,19 @@ export const defaultCleverTableProps = {
     type: Function as PropType<(data: any) => any>,
     default: undefined
   },
+  beforeSave: {
+    type: Function as PropType<(data: any, isEdit: boolean) => any>,
+    default: undefined
+  },
+  afterSave: {
+    type: Function as PropType<(data: any, isEdit: boolean) => void>,
+    default: undefined
+  },
+  // 事件回调
+  onFormOpen: {
+    type: Function as PropType<(mode: FormMode, record?: any) => void>,
+    default: undefined
+  },
   // 表格属性
   tableProps: {
     type: Object,
@@ -163,6 +206,7 @@ export function getDefaultCleverTableProps(): CleverTableProps {
     data: [],
     loading: false,
     autoLoad: true,
+    idField: 'id',
     actions: [],
     headerActions: [],
     searchConfig: {
@@ -176,6 +220,9 @@ export function getDefaultCleverTableProps(): CleverTableProps {
       collapseText: '收起'
     },
     apiConfig: {},
+    formConfig: {},
+    deleteConfig: {},
+    saveConfig: {},
     paginationConfig: {
       page: 1,
       pageSize: 10,
@@ -185,6 +232,8 @@ export function getDefaultCleverTableProps(): CleverTableProps {
       showQuickJumper: true,
       showSizePicker: true
     },
+    actionConfig: {},
+    autoShowActions: true,
     showActionColumn: true,
     actionColumnTitle: '操作',
     actionColumnWidth: 150,

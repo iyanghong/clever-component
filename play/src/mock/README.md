@@ -1,6 +1,6 @@
 # Mock API 服务
 
-这个 Mock API 服务为 CleverDataTableDemo 组件提供模拟数据，无需真实的后端服务即可测试所有功能。
+这个 Mock API 服务为组件演示提供模拟数据，无需真实的后端服务即可测试所有功能。
 
 ## 功能特性
 

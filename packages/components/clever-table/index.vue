@@ -4,6 +4,7 @@ import CleverTable from './src/table.vue'
 import defaultCleverTableProps from './src/default-props'
 import type { CleverTableMethods } from './src/types'
 
+
 const cleverTableRef = ref<CleverTableMethods>()
 const attrs = useAttrs()
 const props = defineProps(defaultCleverTableProps)
@@ -14,6 +15,11 @@ const emit = defineEmits<{
   'header-action-click': [action: string]
   'row-click': [record: any, index: number]
   'selection-change': [keys: (string | number)[]]
+  'form-open': [record?: any]
+  'save-success': [data: any, isEdit: boolean]
+  'save-error': [error: any, isEdit: boolean]
+  'delete-success': [record: any]
+  'delete-error': [error: any, record: any]
 }>()
 
 // 获取合并后的属性
@@ -34,6 +40,16 @@ function handleOpenForm(record?: any) {
 // 删除数据
 function handleDelete(record: any) {
   return cleverTableRef.value?.handleDelete(record)
+}
+
+// 批量删除数据
+function handleBatchDelete(records: any[]) {
+  return cleverTableRef.value?.handleBatchDelete(records)
+}
+
+// 保存数据
+function handleSave(data: any, isEdit?: boolean) {
+  return cleverTableRef.value?.handleSave(data, isEdit)
 }
 
 // 设置选中行
@@ -66,6 +82,8 @@ defineExpose({
   handleRefresh,
   handleOpenForm,
   handleDelete,
+  handleBatchDelete,
+  handleSave,
   setCheckedRowKeys,
   getCheckedRowKeys,
   updateSearchParams,
@@ -83,6 +101,11 @@ defineExpose({
     @header-action-click="emit('header-action-click', $event)"
     @row-click="emit('row-click', $event)"
     @selection-change="emit('selection-change', $event)"
+    @form-open="emit('form-open', $event)"
+    @save-success="emit('save-success', $event)"
+    @save-error="emit('save-error', $event)"
+    @delete-success="emit('delete-success', $event)"
+    @delete-error="emit('delete-error', $event)"
   />
 </template>
 

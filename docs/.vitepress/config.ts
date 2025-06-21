@@ -50,8 +50,7 @@ export default defineConfig({
         {
           text: '数据展示',
           items: [
-            { text: 'CleverTable 智能表格', link: '/components/clever-table' },
-            { text: 'CleverDataTable 数据表格', link: '/components/clever-data-table' }
+            { text: 'CleverTable 智能表格', link: '/components/clever-table' }
           ]
         }
       ],

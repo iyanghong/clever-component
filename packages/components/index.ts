@@ -19,17 +19,11 @@ export type {
   ApiConfig, 
   PaginationConfig,
   CleverTableMethods,
-  UseTableReturnType
+  UseTableReturnType,
+  ActionConfig
 } from './clever-table/src/types/index'
+export { FormMode } from './clever-table/src/types/index'
 
-// CleverDataTable组件
-export { default as CleverDataTable } from './clever-data-table/index.vue'
-export type {
-  CleverDataTableProps,
-  DataTableApiConfig,
-  DataTableFormConfig,
-  CleverDataTableMethods,
-  UseDataTableReturnType
-} from './clever-data-table/src/types/index'
+
 
 // 这里可以继续添加更多组件的导出

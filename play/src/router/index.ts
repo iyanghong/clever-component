@@ -7,7 +7,8 @@ import { NCard } from 'naive-ui'
 import CleverFormDemo from '../demo/CleverFormDemo.vue'
 import CleverPopupDemo from '../demo/CleverPopupDemo.vue'
 import CleverTableDemo from '../demo/CleverTableDemo.vue'
-import CleverDataTableDemo from '../demo/CleverDataTableDemo.vue'
+import CleverTableCrudDemo from '../demo/CleverTableCrudDemo.vue'
+
 
 // 首页组件
 const Home = {
@@ -58,13 +59,14 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/clever-data-table',
-    name: 'CleverDataTable',
-    component: CleverDataTableDemo,
+    path: '/clever-table-crud',
+    name: 'CleverTableCrud',
+    component: CleverTableCrudDemo,
     meta: {
-      title: 'CleverDataTable 数据表格'
+      title: 'CleverTableCrud 表格增删改查'
     }
-  }
+  },
+
 ]
 
 // 创建路由实例
