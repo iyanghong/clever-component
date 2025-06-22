@@ -200,6 +200,42 @@ const props = [
     type: 'boolean',
     default: 'true',
     description: '是否显示验证错误信息'
+  },
+  {
+    name: 'onlyShowOneRow',
+    type: 'boolean',
+    default: 'false',
+    description: '是否只显示一行模式，适用于搜索表单和紧凑布局场景'
+  },
+  {
+    name: 'showAdvancedButton',
+    type: 'boolean',
+    default: 'false',
+    description: '是否显示展开/收起按钮，配合onlyShowOneRow使用'
+  },
+  {
+    name: 'showResetButton',
+    type: 'boolean',
+    default: 'true',
+    description: '是否显示重置按钮'
+  },
+  {
+    name: 'showSubmitButton',
+    type: 'boolean',
+    default: 'true',
+    description: '是否显示提交按钮'
+  },
+  {
+    name: 'submitButtonText',
+    type: 'string',
+    default: '提交',
+    description: '提交按钮文本'
+  },
+  {
+    name: 'resetButtonText',
+    type: 'string',
+    default: '重置',
+    description: '重置按钮文本'
   }
 ]
 
@@ -280,6 +316,18 @@ const methods = [
     params: '()',
     returns: 'Promise<void>',
     description: '提交表单'
+  },
+  {
+    name: 'unfoldToggle',
+    params: '()',
+    returns: 'void',
+    description: '切换表单展开/收起状态，仅在onlyShowOneRow模式下有效'
+  },
+  {
+    name: 'reset',
+    params: '()',
+    returns: 'void',
+    description: '重置表单数据和验证状态'
   }
 ]
 

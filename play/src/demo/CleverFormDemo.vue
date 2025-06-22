@@ -16,6 +16,9 @@
       <!-- 复杂布局 -->
       <ComplexLayoutDemo />
       
+      <!-- 单行显示模式 -->
+      <OnlyShowOneRowDemo />
+      
       <!-- 表单联动 -->
       <FormLinkageDemo />
       
@@ -41,6 +44,7 @@ import BasicUsageDemo from './form-demos/BasicUsageDemo.vue'
 import ValidationDemo from './form-demos/ValidationDemo.vue'
 import DynamicFormDemo from './form-demos/DynamicFormDemo.vue'
 import ComplexLayoutDemo from './form-demos/ComplexLayoutDemo.vue'
+import OnlyShowOneRowDemo from './form-demos/OnlyShowOneRowDemo.vue'
 import FormLinkageDemo from './form-demos/FormLinkageDemo.vue'
 import CustomComponentDemo from './form-demos/CustomComponentDemo.vue'
 import ApiConfigDemo from './form-demos/ApiConfigDemo.vue'

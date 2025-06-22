@@ -1,6 +1,6 @@
 // 按钮组件
 // CleverForm组件
-export { default as CleverForm } from './clever-form/index.vue'
+export { default as CleverForm } from './clever-form/src/form.vue'
 export type {
   CleverFormProps,
   FormSchema,
@@ -36,7 +36,7 @@ export { default as CleverPopup } from './clever-popup/index.vue'
 export type { CleverPopupProps } from './clever-popup/types'
 
 // CleverTable组件
-export { default as CleverTable } from './clever-table/index.vue'
+export { default as CleverTable } from './clever-table/src/table.vue'
 export type {
   CleverTableProps,
   TableColumn,

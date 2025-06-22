@@ -47,12 +47,7 @@ export default {
     required: false,
     default: () => null
   },
-  layout: {
-    type: String,
-    required: false,
-    default: () => 'inline'
-  },
-  inline: {
+  onlyShowOneRow: {
     type: Boolean,
     required: false,
     default: () => false

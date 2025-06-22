@@ -30,6 +30,7 @@ export type ComponentType =
   | 'SelectIcon'
   | 'UploadAvatar'
   | 'UploadImage'
+  | 'textarea'
 
 export * from './form'
 export type {

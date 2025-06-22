@@ -298,8 +298,10 @@ export class AccordionLayoutBuilder<T extends Record<string, any> = any> {
     })
     
     if (defaultExpanded) {
-      this.config.defaultExpandedNames = this.config.defaultExpandedNames || []
-      this.config.defaultExpandedNames.push(name)
+      if (!this.config?.defaultExpandedNames) {
+        this.config!.defaultExpandedNames = []
+      }
+      this.config?.defaultExpandedNames?.push(name)
     }
     
     return this

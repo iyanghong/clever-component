@@ -68,7 +68,7 @@ class SearchCache {
     // 检查缓存大小限制
     if (this.cache.size >= (this.config.maxSize || 50)) {
       // 删除最旧的缓存项
-      const oldestKey = this.cache.keys().next().value
+      const oldestKey = this.cache.keys().next().value as string
       this.cache.delete(oldestKey)
     }
 

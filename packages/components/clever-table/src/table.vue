@@ -1,21 +1,13 @@
 <template>
-  <NSpace class="clever-table">
+  <NSpace class="clever-table" vertical>
     <!-- 搜索组件 -->
     <NCard>
-<!--      <CleverSearch-->
-<!--        v-if="searchConfig.show"-->
-<!--        ref="searchRef"-->
-<!--        :config="enhancedSearchConfig"-->
-<!--        :loading="loading"-->
-<!--        @search="handleSearch"-->
-<!--        @reset="handleResetSearch"-->
-<!--        @clear-all="handleClearAllSearch"-->
-<!--        @mode-change="handleSearchModeChange"-->
-<!--        @params-change="handleSearchParamsChange"-->
-<!--        @preset-save="handlePresetSave"-->
-<!--        class="mb-4"-->
-<!--      />-->
-      <CleverForm  :schemas="searchConfig.schemas" :inline="true" :showActionButtonGroup="true" :showAdvancedButton="true"></CleverForm>
+      <CleverForm
+        :schemas="searchConfig.schemas"
+        :onlyShowOneRow="true"
+        :showActionButtonGroup="true"
+        :showAdvancedButton="true"
+      ></CleverForm>
     </NCard>
     <NCard>
       <NSpace vertical>

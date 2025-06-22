@@ -59,7 +59,7 @@ export interface FormFieldSchema<T extends Record<string, any> = any> {
   /** 值变化回调 */
   onChange?: (newValue: any, oldValue: any, methods: CleverFormMethods<T>) => void | Promise<void>
   /** 显示模式 */
-  showMode?: 'edit' | 'detail' | 'disable'
+  showMode?: 'edit' | 'detail' | 'disable' | 'hidden'
   
   /** 字段布局配置 */
   layout?: {
@@ -194,10 +194,8 @@ export interface CleverFormProps<T extends Record<string, any> = any> {
   dataId?: string | number
   /** 自定义ID字段名，默认为'id' */
   idField?: string
-  /** 布局方式 */
-  layout?: string | 'inline'
-  /** 是否为行内表单 */
-  inline?: boolean
+  /** 是否只显示一行 */
+  onlyShowOneRow?: boolean
   /** 表单尺寸 */
   size?: Size
   /** 标签位置 */
