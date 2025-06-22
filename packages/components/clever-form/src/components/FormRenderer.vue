@@ -1,8 +1,23 @@
 <template>
   <div class="form-renderer">
     <template v-for="schema in schemas" :key="getSchemaKey(schema)">
+      <!-- 分组类型 -->
+      <template v-if="isFormGroupSchema(schema)">
+        <div class="form-group" :style="schema.style" :class="schema.className">
+          <h3 v-if="schema.title" class="form-group-title">{{ schema.title }}</h3>
+          <p v-if="schema.description" class="form-group-description">{{ schema.description }}</p>
+          <NGrid v-bind="getGridConfig()">
+            <template v-for="fieldSchema in schema.fields" :key="getSchemaKey(fieldSchema)">
+              <NGi v-if="ifShowFormItem(fieldSchema)" v-bind="getComponentProps(fieldSchema, 'gi')">
+                <FormField :schema="fieldSchema" :form-model="formModel" :methods="methods" />
+              </NGi>
+            </template>
+          </NGrid>
+        </div>
+      </template>
+      
       <!-- 容器类型 -->
-      <template v-if="schema.type === 'container'">
+      <template v-else-if="schema.type === 'container'">
         <!-- Tabs 容器 -->
         <NTabs v-if="schema.containerType === 'tabs'" v-bind="schema.config || {}">
           <NTabPane 
@@ -85,7 +100,7 @@
 import { computed } from 'vue'
 import { NTabs, NTabPane, NCollapse, NCollapseItem, NGrid, NGi } from 'naive-ui'
 import FormField from './FormField.vue'
-import type { FormSchema, FormContainerSchema, CleverFormMethods, LayoutConfig } from '../types/form'
+import type { FormSchema, FormFieldSchema, FormGroupSchema, FormContainerSchema, CleverFormMethods, LayoutConfig } from '../types/form'
 
 interface Props {
   schemas: (FormSchema | FormContainerSchema)[]
@@ -99,10 +114,18 @@ const props = withDefaults(defineProps<Props>(), {
   isFlex: false
 })
 
+// 判断是否为分组schema
+const isFormGroupSchema = (schema: FormSchema | FormContainerSchema): schema is FormGroupSchema => {
+  return 'title' in schema && 'fields' in schema && !('type' in schema)
+}
+
 // 生成schema的唯一key
 const getSchemaKey = (schema: FormSchema | FormContainerSchema) => {
   if ('type' in schema && schema.type === 'container') {
     return `container-${schema.containerType}-${Date.now()}-${Math.random()}`
+  }
+  if (isFormGroupSchema(schema)) {
+    return `group-${schema.title}-${Date.now()}-${Math.random()}`
   }
   return `field-${schema.field}-${Date.now()}`
 }
@@ -156,11 +179,32 @@ const getComponentProps = (schema: FormSchema, type: string) => {
   return {}
 }
 
+// 判断是否为字段schema
+const isFormFieldSchema = (schema: FormSchema): schema is FormFieldSchema => {
+  return 'field' in schema && 'component' in schema
+}
+
+// 判断是否为容器schema
+const isFormContainerSchema = (schema: FormSchema): schema is FormContainerSchema => {
+  return 'type' in schema && schema.type === 'container'
+}
+
 // 判断是否显示表单项
 const ifShowFormItem = (schema: FormSchema) => {
-  if (schema.ifShow) {
+  if (!schema.ifShow) {
+    return true
+  }
+  
+  // FormFieldSchema类型的ifShow有3个参数：formModel, value, methods
+  if (isFormFieldSchema(schema)) {
     return schema.ifShow(props.formModel, props.formModel[schema.field as string] || '', props.methods)
   }
+  
+  // FormGroupSchema和FormContainerSchema类型的ifShow有2个参数：formModel, methods
+  if (isFormGroupSchema(schema) || isFormContainerSchema(schema)) {
+    return schema.ifShow(props.formModel, props.methods)
+  }
+  
   return true
 }
 </script>
@@ -168,5 +212,22 @@ const ifShowFormItem = (schema: FormSchema) => {
 <style scoped>
 .form-renderer {
   width: 100%;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group-description {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #666;
 }
 </style>

@@ -1,10 +1,660 @@
+<template>
+  <div class="clever-form">
+    <NForm
+      ref="formRef"
+      v-bind="getProps"
+      :model="formModel"
+      @keydown.enter="handleSubmit"
+      :disabled="true"
+    >
+      <!-- 混合布局模式 -->
+      <template v-if="layoutMode === 'mixed'">
+        <NSpace :wrap="false" v-if="isInline">
+          <FormRenderer
+            :schemas="wrappedSchemas"
+            :form-model="formModel"
+            :methods="formMethods"
+            :layout-config="getActualLayoutConfig()"
+          />
+          <NSpace justify="end" align="center" style="width: 200px">
+            <!-- 重置按钮 -->
+            <NButton
+              v-if="showResetButton"
+              v-bind="getResetBtnOptions"
+              @click="handleReset"
+            >
+              {{ resetButtonText }}
+            </NButton>
+
+            <!-- 提交按钮 -->
+            <NButton
+              v-if="showSubmitButton"
+              v-bind="getSubmitBtnOptions"
+              @click="handleSubmit"
+            >
+              {{ submitButtonText }}
+            </NButton>
+
+            <!-- 展开收起按钮 -->
+            <NButton v-if="showAdvancedButton" text @click="unfoldToggle">
+              {{ collapsed ? '展开' : '收起' }}
+              <template #icon>
+                <NIcon>
+                  <svg
+                    v-if="collapsed"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M7 10l5 5 5-5z" fill="currentColor" />
+                  </svg>
+                  <svg
+                    v-else
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M7 14l5-5 5 5z" fill="currentColor" />
+                  </svg>
+                </NIcon>
+              </template>
+            </NButton>
+          </NSpace>
+        </NSpace>
+        <div v-else>
+          <FormRenderer
+            :schemas="wrappedSchemas"
+            :form-model="formModel"
+            :methods="formMethods"
+            :layout-config="getActualLayoutConfig()"
+          />
+          <NSpace justify="end" align="center" style="width: 200px">
+            <!-- 重置按钮 -->
+            <NButton
+              v-if="showResetButton"
+              v-bind="getResetBtnOptions"
+              @click="handleReset"
+            >
+              {{ resetButtonText }}
+            </NButton>
+
+            <!-- 提交按钮 -->
+            <NButton
+              v-if="showSubmitButton"
+              v-bind="getSubmitBtnOptions"
+              @click="handleSubmit"
+            >
+              {{ submitButtonText }}
+            </NButton>
+
+            <!-- 展开收起按钮 -->
+            <NButton v-if="showAdvancedButton" text @click="unfoldToggle">
+              {{ collapsed ? '展开' : '收起' }}
+              <template #icon>
+                <NIcon>
+                  <svg
+                    v-if="collapsed"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M7 10l5 5 5-5z" fill="currentColor" />
+                  </svg>
+                  <svg
+                    v-else
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M7 14l5-5 5 5z" fill="currentColor" />
+                  </svg>
+                </NIcon>
+              </template>
+            </NButton>
+          </NSpace>
+        </div>
+      </template>
+      <!-- Grid Layout -->
+      <template v-if="layoutMode === 'grid'">
+        <NGrid v-bind="getGrid">
+          <template
+            v-for="schema in getSchema"
+            :key="
+              isFormFieldSchema(schema)
+                ? schema.field
+                : `group-${Math.random()}`
+            "
+          >
+            <NGi
+              v-if="ifShowFormItem(schema) && isFormFieldSchema(schema)"
+              v-bind="getComponentProps(schema)"
+            >
+              <NFormItem v-bind="getFormItemProps(schema)">
+                <!-- 标签名右侧温馨提示 -->
+                <template
+                  v-if="isFormFieldSchema(schema) && schema.labelMessage"
+                  #label
+                >
+                  {{ schema.label }}
+                  <NTooltip trigger="hover" :style="schema.labelMessageStyle">
+                    <template #trigger>
+                      <NIcon
+                        size="18"
+                        class="cursor-pointer text-gray-400 ml-1"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-6h2v6zm0-8h-2V7h2v4z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </NIcon>
+                    </template>
+                    {{ schema.labelMessage }}
+                  </NTooltip>
+                </template>
+
+                <!-- 判断插槽 -->
+                <template v-if="isFormFieldSchema(schema) && schema.slot">
+                  <slot
+                    :name="schema.slot"
+                    :model="formModel"
+                    :field="schema.field"
+                    :value="formModel[schema.field as string]"
+                  ></slot>
+                </template>
+
+                <!-- NCheckbox -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NCheckbox'
+                  "
+                >
+                  <NCheckboxGroup
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      (val: any) =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  >
+                    <NSpace>
+                      <NCheckbox
+                        v-for="item in schema.componentProps?.options || []"
+                        :key="item.value"
+                        :value="item.value"
+                        :label="item.label"
+                      />
+                    </NSpace>
+                  </NCheckboxGroup>
+                </template>
+
+                <!-- NRadioGroup -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NRadioGroup'
+                  "
+                >
+                  <NRadioGroup
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  >
+                    <NSpace>
+                      <NRadio
+                        v-for="item in schema.componentProps?.options || []"
+                        :key="item.value"
+                        :value="item.value"
+                      >
+                        {{ item.label }}
+                      </NRadio>
+                    </NSpace>
+                  </NRadioGroup>
+                </template>
+
+                <!-- NSelect -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NSelect'
+                  "
+                >
+                  <NSelect
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NDatePicker -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NDatePicker'
+                  "
+                >
+                  <NDatePicker
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NTimePicker -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NTimePicker'
+                  "
+                >
+                  <NTimePicker
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NInputNumber -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NInputNumber'
+                  "
+                >
+                  <NInputNumber
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NSwitch -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NSwitch'
+                  "
+                >
+                  <NSwitch
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NSlider -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NSlider'
+                  "
+                >
+                  <NSlider
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NRate -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NRate'
+                  "
+                >
+                  <NRate
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NDynamicTags -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NDynamicTags'
+                  "
+                >
+                  <NDynamicTags
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      (val: any) =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- NInputTextArea -->
+                <template
+                  v-else-if="
+                    isFormFieldSchema(schema) &&
+                    getActualComponent(schema.component) === 'NInputTextArea'
+                  "
+                >
+                  <NInput
+                    v-model:value="formModel[schema.field as string]"
+                    type="textarea"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- 默认 NInput -->
+                <template v-else-if="isFormFieldSchema(schema)">
+                  <NInput
+                    v-model:value="formModel[schema.field as string]"
+                    v-bind="getComponentProps(schema)"
+                    @update:value="
+                      val =>
+                        handleFieldChange(
+                          schema,
+                          val,
+                          formModel[schema.field as string]
+                        )
+                    "
+                  />
+                </template>
+
+                <!-- 后缀 -->
+                <template v-if="isFormFieldSchema(schema) && schema.suffix">
+                  <span class="ml-2 text-gray-500">{{ schema.suffix }}</span>
+                </template>
+              </NFormItem>
+            </NGi>
+          </template>
+          <!-- 操作按钮组 -->
+          <NGi v-if="showActionButtonGroup" :span="24">
+            <NSpace justify="end">
+              <!-- 展开收起按钮 -->
+              <NButton v-if="showAdvancedButton" text @click="unfoldToggle">
+                {{ collapsed ? '展开' : '收起' }}
+                <template #icon>
+                  <NIcon>
+                    <svg
+                      v-if="collapsed"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M7 10l5 5 5-5z" fill="currentColor" />
+                    </svg>
+                    <svg
+                      v-else
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M7 14l5-5 5 5z" fill="currentColor" />
+                    </svg>
+                  </NIcon>
+                </template>
+              </NButton>
+
+              <!-- 重置按钮 -->
+              <NButton
+                v-if="showResetButton"
+                v-bind="getResetBtnOptions"
+                @click="handleReset"
+              >
+                {{ resetButtonText }}
+              </NButton>
+
+              <!-- 提交按钮 -->
+              <NButton
+                v-if="showSubmitButton"
+                v-bind="getSubmitBtnOptions"
+                @click="handleSubmit"
+              >
+                {{ submitButtonText }}
+              </NButton>
+            </NSpace>
+          </NGi>
+        </NGrid>
+      </template>
+
+      <!-- Flex Layout -->
+      <template v-else-if="layoutMode === 'flex'">
+        <div class="clever-form-flex" :style="getFlexStyle">
+          <template v-for="schema in getSchema" :key="schema.field">
+            <div
+              v-if="ifShowFormItem(schema)"
+              class="clever-form-flex-item"
+              :style="getFlexItemStyle(schema)"
+            >
+              <NFormItem v-bind="getFormItemProps(schema)">
+                <!-- 表单组件内容保持不变 -->
+                <component
+                  :is="getFormComponent(schema)"
+                  v-bind="getComponentProps(schema)"
+                />
+              </NFormItem>
+            </div>
+          </template>
+        </div>
+
+        <!-- 操作按钮组 -->
+        <div
+          v-if="showActionButtonGroup"
+          class="clever-form-action"
+          style="margin-top: 16px"
+        >
+          <NSpace justify="end">
+            <NButton
+              v-if="showResetButton"
+              v-bind="getResetBtnOptions"
+              @click="handleReset"
+            >
+              {{ resetButtonText }}
+            </NButton>
+            <NButton
+              v-if="showSubmitButton"
+              v-bind="getSubmitBtnOptions"
+              @click="handleSubmit"
+            >
+              {{ submitButtonText }}
+            </NButton>
+          </NSpace>
+        </div>
+      </template>
+
+      <!-- Tabs Layout -->
+      <template v-else-if="layoutMode === 'tabs'">
+        <NTabs type="line" animated>
+          <NTabPane
+            v-for="group in getGroupedSchemas"
+            :key="group.name"
+            :name="group.name"
+            :tab="group.title"
+          >
+            <NGrid v-bind="getGrid">
+              <template v-for="schema in group.fields" :key="schema.field">
+                <NGi
+                  v-if="ifShowFormItem(schema)"
+                  v-bind="getComponentProps(schema, 'gi')"
+                >
+                  <NFormItem v-bind="getFormItemProps(schema)">
+                    <component
+                      :is="getFormComponent(schema)"
+                      v-bind="getComponentProps(schema)"
+                    />
+                  </NFormItem>
+                </NGi>
+              </template>
+            </NGrid>
+          </NTabPane>
+        </NTabs>
+
+        <!-- 操作按钮组 -->
+        <div
+          v-if="showActionButtonGroup"
+          class="clever-form-action"
+          style="margin-top: 16px"
+        >
+          <NSpace justify="end">
+            <NButton
+              v-if="showResetButton"
+              v-bind="getResetBtnOptions"
+              @click="handleReset"
+            >
+              {{ resetButtonText }}
+            </NButton>
+            <NButton
+              v-if="showSubmitButton"
+              v-bind="getSubmitBtnOptions"
+              @click="handleSubmit"
+            >
+              {{ submitButtonText }}
+            </NButton>
+          </NSpace>
+        </div>
+      </template>
+
+      <!-- Accordion Layout -->
+      <template v-else-if="layoutMode === 'accordion'">
+        <NCollapse>
+          <NCollapseItem
+            v-for="group in getGroupedSchemas"
+            :key="group.name"
+            :title="group.title"
+            :name="group.name"
+          >
+            <NGrid v-bind="getGrid">
+              <template v-for="schema in group.fields" :key="schema.field">
+                <NGi
+                  v-if="ifShowFormItem(schema)"
+                  v-bind="getComponentProps(schema, 'gi')"
+                >
+                  <NFormItem v-bind="getFormItemProps(schema)">
+                    <component
+                      :is="getFormComponent(schema)"
+                      v-bind="getComponentProps(schema)"
+                    />
+                  </NFormItem>
+                </NGi>
+              </template>
+            </NGrid>
+          </NCollapseItem>
+        </NCollapse>
+
+        <!-- 操作按钮组 -->
+        <div
+          v-if="showActionButtonGroup"
+          class="clever-form-action"
+          style="margin-top: 16px"
+        >
+          <NSpace justify="end">
+            <NButton
+              v-if="showResetButton"
+              v-bind="getResetBtnOptions"
+              @click="handleReset"
+            >
+              {{ resetButtonText }}
+            </NButton>
+            <NButton
+              v-if="showSubmitButton"
+              v-bind="getSubmitBtnOptions"
+              @click="handleSubmit"
+            >
+              {{ submitButtonText }}
+            </NButton>
+          </NSpace>
+        </div>
+      </template>
+    </NForm>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useForm } from '@/components/clever-form/src/hook/use-form'
 import { isArray } from '@/utils/is'
 import defaultCleverFormProps from './default-props'
 import FormRenderer from './components/FormRenderer.vue'
-import type { FormSchema, FormFieldSchema, FormGroupSchema, FormContainerSchema } from './types/form'
+import type {
+  FormSchema,
+  FormFieldSchema,
+  FormGroupSchema,
+  FormContainerSchema
+} from './types/form'
 import {
   NButton,
   NCheckbox,
@@ -19,7 +669,6 @@ import {
   NIcon,
   NInput,
   NInputNumber,
-  NInputTextArea,
   NRadio,
   NRadioGroup,
   NRate,
@@ -37,6 +686,27 @@ const props = defineProps(defaultCleverFormProps)
 const formRef = ref()
 const emit = defineEmits(['reset', 'submit'])
 
+// 组件名映射
+const componentMap: Record<string, string> = {
+  input: 'NInput',
+  textarea: 'NInputTextArea',
+  'input-number': 'NInputNumber',
+  select: 'NSelect',
+  'checkbox-group': 'NCheckbox',
+  'radio-group': 'NRadioGroup',
+  'date-picker': 'NDatePicker',
+  'time-picker': 'NTimePicker',
+  switch: 'NSwitch',
+  slider: 'NSlider',
+  rate: 'NRate',
+  'dynamic-tags': 'NDynamicTags'
+}
+
+// 获取实际组件名
+const getActualComponent = (component: string) => {
+  return componentMap[component] || component
+}
+
 const {
   formModel,
   formItemFieldKeys,
@@ -44,6 +714,8 @@ const {
   getFieldValue,
   setFormData,
   getFormData,
+  getActualSchemas,
+  getActualLayoutConfig,
   unfoldToggle,
   getComponentProps,
   getFormItemProps,
@@ -84,7 +756,39 @@ const formMethods = computed(() => ({
 }))
 
 // 从props中获取layoutMode，支持mixed模式
-const layoutMode = computed(() => props.layoutMode || 'grid')
+const layoutMode = computed(() => props.layoutMode || 'mixed')
+
+// 包装schemas，确保混合布局模式下顶层始终有container
+const wrappedSchemas = computed(() => {
+  const actualSchemas = getActualSchemas()
+
+  if (layoutMode.value !== 'mixed') {
+    return actualSchemas
+  }
+
+  // 检查是否已经有顶层container
+  const hasTopLevelContainer = actualSchemas.some(schema =>
+    isFormContainerSchema(schema)
+  )
+
+  // 如果没有顶层container，则包装一个
+  if (!hasTopLevelContainer) {
+    return [
+      {
+        type: 'container' as const,
+        containerType: 'grid',
+        children: actualSchemas,
+        config: {
+          cols: '1 s:1 m:2 l:3 xl:4 2xl:4',
+          xGap: 16,
+          yGap: 16
+        }
+      }
+    ]
+  }
+
+  return actualSchemas
+})
 
 // 类型守卫函数
 const isFormFieldSchema = (schema: FormSchema): schema is FormFieldSchema => {
@@ -95,33 +799,54 @@ const isFormGroupSchema = (schema: FormSchema): schema is FormGroupSchema => {
   return 'title' in schema && 'fields' in schema && !('type' in schema)
 }
 
-const isFormContainerSchema = (schema: FormSchema): schema is FormContainerSchema => {
+const isFormContainerSchema = (
+  schema: FormSchema
+): schema is FormContainerSchema => {
   return 'type' in schema && schema.type === 'container'
 }
 
 const ifShowFormItem = (schema: FormSchema) => {
-  if (!isFormFieldSchema(schema)) {
+  // 处理FormFieldSchema类型的ifShow
+  if (isFormFieldSchema(schema)) {
+    if (schema.ifShow) {
+      const isShow = schema.ifShow(
+        formModel.value,
+        formModel.value[schema.field as string] || '',
+        methods
+      )
+      if (isShow && schema.component === 'NDynamicTags') {
+        try {
+          formModel.value[schema.field as string] = isArray(
+            formModel.value[schema.field as string]
+          )
+            ? formModel.value[schema.field as string]
+            : JSON.parse(formModel.value[schema.field as string])
+        } catch (e) {
+          formModel.value[schema.field as string] = schema.defaultValue || []
+        }
+      }
+      return isShow
+    }
     return true
   }
-  
-  if (schema.ifShow) {
-    const isShow = schema.ifShow(formModel.value, formModel.value[schema.field as string] || '', methods)
-    if (isShow && schema.component === 'NDynamicTags') {
-      try {
-        formModel.value[schema.field as string] = isArray(formModel.value[schema.field as string])
-          ? formModel.value[schema.field as string]
-          : JSON.parse(formModel.value[schema.field as string])
-      } catch (e) {
-        formModel.value[schema.field as string] = schema.defaultValue || []
-      }
-    }
-    return isShow
+
+  // 处理FormGroupSchema和FormContainerSchema类型的ifShow
+  if (
+    (isFormGroupSchema(schema) || isFormContainerSchema(schema)) &&
+    schema.ifShow
+  ) {
+    return schema.ifShow(formModel.value, methods)
   }
+
   return true
 }
 
 // 处理字段值变化
-const handleFieldChange = (schema: FormSchema, newValue: any, oldValue: any) => {
+const handleFieldChange = (
+  schema: FormSchema,
+  newValue: any,
+  oldValue: any
+) => {
   if (isFormFieldSchema(schema) && schema.onChange) {
     schema.onChange(newValue, oldValue, methods)
   }
@@ -137,259 +862,6 @@ defineExpose({
   submit
 })
 </script>
-
-<template>
-  <div class="clever-form">
-    <NForm ref="formRef" v-bind="getProps" :model="formModel" @keydown.enter="handleSubmit" :disabled="true">
-      <!-- 混合布局模式 -->
-      <template v-if="layoutMode === 'mixed'">
-        <FormRenderer 
-          :schemas="schemas"
-          :form-model="formModel"
-          :methods="formMethods"
-          :layout-config="layoutConfig"
-        />
-      </template>
-      <!-- Grid Layout -->
-      <template v-if="layoutMode === 'grid'">
-        <NGrid v-bind="getGrid">
-          <template v-for="schema in getSchema" :key="isFormFieldSchema(schema) ? schema.field : `group-${Math.random()}`">
-            <NGi v-if="ifShowFormItem(schema) && isFormFieldSchema(schema)" v-bind="getComponentProps(schema)">
-              <NFormItem v-bind="getFormItemProps(schema)">
-                <!-- 标签名右侧温馨提示 -->
-                <template v-if="isFormFieldSchema(schema) && schema.labelMessage" #label>
-                  {{ schema.label }}
-                  <NTooltip trigger="hover" :style="schema.labelMessageStyle">
-                    <template #trigger>
-                      <NIcon size="18" class="cursor-pointer text-gray-400 ml-1">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-6h2v6zm0-8h-2V7h2v4z"
-                            fill="currentColor" />
-                        </svg>
-                      </NIcon>
-                    </template>
-                    {{ schema.labelMessage }}
-                  </NTooltip>
-                </template>
-
-                <!-- 判断插槽 -->
-                <template v-if="isFormFieldSchema(schema) && schema.slot">
-                  <slot :name="schema.slot" :model="formModel" :field="schema.field"
-                    :value="formModel[schema.field as string]"></slot>
-                </template>
-
-                <!-- NCheckbox -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NCheckbox'">
-                  <NCheckboxGroup v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val:any) => handleFieldChange(schema, val, formModel[schema.field as string])">
-                    <NSpace>
-                      <NCheckbox v-for="item in schema.componentProps?.options || []" :key="item.value"
-                        :value="item.value" :label="item.label" />
-                    </NSpace>
-                  </NCheckboxGroup>
-                </template>
-
-                <!-- NRadioGroup -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NRadioGroup'">
-                  <NRadioGroup v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])">
-                    <NSpace>
-                      <NRadio v-for="item in schema.componentProps?.options || []" :key="item.value"
-                        :value="item.value">
-                        {{ item.label }}
-                      </NRadio>
-                    </NSpace>
-                  </NRadioGroup>
-                </template>
-
-                <!-- NSelect -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NSelect'">
-                  <NSelect v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NDatePicker -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NDatePicker'">
-                  <NDatePicker v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NTimePicker -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NTimePicker'">
-                  <NTimePicker v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NInputNumber -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NInputNumber'">
-                  <NInputNumber v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NSwitch -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NSwitch'">
-                  <NSwitch v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NSlider -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NSlider'">
-                  <NSlider v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NRate -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NRate'">
-                  <NRate v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NDynamicTags -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NDynamicTags'">
-                  <NDynamicTags v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val:any) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- NInputTextArea -->
-                <template v-else-if="isFormFieldSchema(schema) && schema.component === 'NInputTextArea'">
-                  <NInput v-model:value="formModel[schema.field as string]" type="textarea"
-                    v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- 默认 NInput -->
-                <template v-else-if="isFormFieldSchema(schema)">
-                  <NInput v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-                    @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
-                </template>
-
-                <!-- 后缀 -->
-                <template v-if="isFormFieldSchema(schema) && schema.suffix">
-                  <span class="ml-2 text-gray-500">{{ schema.suffix }}</span>
-                </template>
-              </NFormItem>
-            </NGi>
-          </template>
-          <!-- 操作按钮组 -->
-          <NGi v-if="showActionButtonGroup" :span="24">
-            <NSpace justify="end">
-              <!-- 展开收起按钮 -->
-              <NButton v-if="showAdvancedButton" text @click="unfoldToggle">
-                {{ collapsed ? '展开' : '收起' }}
-                <template #icon>
-                  <NIcon>
-                    <svg v-if="collapsed" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7 10l5 5 5-5z" fill="currentColor" />
-                    </svg>
-                    <svg v-else viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7 14l5-5 5 5z" fill="currentColor" />
-                    </svg>
-                  </NIcon>
-                </template>
-              </NButton>
-
-              <!-- 重置按钮 -->
-              <NButton v-if="showResetButton" v-bind="getResetBtnOptions" @click="handleReset">
-                {{ resetButtonText }}
-              </NButton>
-
-              <!-- 提交按钮 -->
-              <NButton v-if="showSubmitButton" v-bind="getSubmitBtnOptions" @click="handleSubmit">
-                {{ submitButtonText }}
-              </NButton>
-            </NSpace>
-          </NGi>
-        </NGrid>
-      </template>
-
-      <!-- Flex Layout -->
-      <template v-else-if="layoutMode === 'flex'">
-        <div class="clever-form-flex" :style="getFlexStyle">
-          <template v-for="schema in getSchema" :key="schema.field">
-            <div v-if="ifShowFormItem(schema)" class="clever-form-flex-item" :style="getFlexItemStyle(schema)">
-              <NFormItem v-bind="getFormItemProps(schema)">
-                <!-- 表单组件内容保持不变 -->
-                <component :is="getFormComponent(schema)" v-bind="getComponentProps(schema)" />
-              </NFormItem>
-            </div>
-          </template>
-        </div>
-
-        <!-- 操作按钮组 -->
-        <div v-if="showActionButtonGroup" class="clever-form-action" style="margin-top: 16px;">
-          <NSpace justify="end">
-            <NButton v-if="showResetButton" v-bind="getResetBtnOptions" @click="handleReset">
-              {{ resetButtonText }}
-            </NButton>
-            <NButton v-if="showSubmitButton" v-bind="getSubmitBtnOptions" @click="handleSubmit">
-              {{ submitButtonText }}
-            </NButton>
-          </NSpace>
-        </div>
-      </template>
-
-      <!-- Tabs Layout -->
-      <template v-else-if="layoutMode === 'tabs'">
-        <NTabs type="line" animated>
-          <NTabPane v-for="group in getGroupedSchemas" :key="group.name" :name="group.name" :tab="group.title">
-            <NGrid v-bind="getGrid">
-              <template v-for="schema in group.fields" :key="schema.field">
-                <NGi v-if="ifShowFormItem(schema)" v-bind="getComponentProps(schema, 'gi')">
-                  <NFormItem v-bind="getFormItemProps(schema)">
-                    <component :is="getFormComponent(schema)" v-bind="getComponentProps(schema)" />
-                  </NFormItem>
-                </NGi>
-              </template>
-            </NGrid>
-          </NTabPane>
-        </NTabs>
-
-        <!-- 操作按钮组 -->
-        <div v-if="showActionButtonGroup" class="clever-form-action" style="margin-top: 16px;">
-          <NSpace justify="end">
-            <NButton v-if="showResetButton" v-bind="getResetBtnOptions" @click="handleReset">
-              {{ resetButtonText }}
-            </NButton>
-            <NButton v-if="showSubmitButton" v-bind="getSubmitBtnOptions" @click="handleSubmit">
-              {{ submitButtonText }}
-            </NButton>
-          </NSpace>
-        </div>
-      </template>
-
-      <!-- Accordion Layout -->
-      <template v-else-if="layoutMode === 'accordion'">
-        <NCollapse>
-          <NCollapseItem v-for="group in getGroupedSchemas" :key="group.name" :title="group.title" :name="group.name">
-            <NGrid v-bind="getGrid">
-              <template v-for="schema in group.fields" :key="schema.field">
-                <NGi v-if="ifShowFormItem(schema)" v-bind="getComponentProps(schema, 'gi')">
-                  <NFormItem v-bind="getFormItemProps(schema)">
-                    <component :is="getFormComponent(schema)" v-bind="getComponentProps(schema)" />
-                  </NFormItem>
-                </NGi>
-              </template>
-            </NGrid>
-          </NCollapseItem>
-        </NCollapse>
-
-        <!-- 操作按钮组 -->
-        <div v-if="showActionButtonGroup" class="clever-form-action" style="margin-top: 16px;">
-          <NSpace justify="end">
-            <NButton v-if="showResetButton" v-bind="getResetBtnOptions" @click="handleReset">
-              {{ resetButtonText }}
-            </NButton>
-            <NButton v-if="showSubmitButton" v-bind="getSubmitBtnOptions" @click="handleSubmit">
-              {{ submitButtonText }}
-            </NButton>
-          </NSpace>
-        </div>
-      </template>
-    </NForm>
-  </div>
-</template>
-
 <style scoped>
 .clever-form-item-detail :deep(.n-form-item-label) {
   font-weight: normal;

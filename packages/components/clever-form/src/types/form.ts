@@ -3,15 +3,16 @@ import type { GridItemProps, GridProps } from 'naive-ui/lib/grid'
 import type { ButtonProps } from 'naive-ui/lib/button'
 import type { FormProps } from 'naive-ui'
 import type { LabelPlacement, Size } from 'naive-ui/es/form/src/interface'
-import type { CleverPopupProps } from '@/components/clever-popup/types'
+import type { CleverPopupProps } from '../../../clever-popup/types'
 import type { ComponentType } from './index'
 import type {
   GetApiFn,
   CreateApiFn,
   UpdateApiFn,
   DeleteApiFn,
-  ResponseBaseModel
-} from '../../../types/response'
+  ResponseBaseModel,
+  PageResponseModel
+} from '../../../../types/response'
 
 export interface CleverFormMethods<T extends Record<string, any> = any> {
   resetFields: () => Promise<void>
@@ -179,7 +180,12 @@ export interface CleverFormProps<T extends Record<string, any> = any> {
   /** 标签宽度 */
   labelWidth?: number | string
   /** 表单配置项 */
-  schemas: FormSchema<T>[]
+  schemas?: FormSchema<T>[]
+  /** Schema配置对象（支持直接传入辅助函数的返回值） */
+  schemaConfig?: {
+    schemas: FormSchema<T>[]
+    layoutConfig?: LayoutConfig
+  }
   /** API配置 */
   apiConfig?: FormApiConfig<T>
   /** 表单模式 */

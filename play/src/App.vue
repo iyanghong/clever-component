@@ -114,6 +114,11 @@ const menuOptions: MenuOption[] = [
         icon: () => h(DocumentTextOutline)
       },
       {
+        label: 'Schema辅助工具',
+        key: 'schema-helpers',
+        icon: () => h(DocumentTextOutline)
+      },
+      {
         label: 'CleverPopup 弹窗',
         key: 'clever-popup',
         icon: () => h(LayersOutline)

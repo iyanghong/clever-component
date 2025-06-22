@@ -4,7 +4,6 @@ import CleverTable from './src/table.vue'
 import defaultCleverTableProps from './src/default-props'
 import type { CleverTableMethods } from './src/types'
 
-
 const cleverTableRef = ref<CleverTableMethods>()
 const attrs = useAttrs()
 const props = defineProps(defaultCleverTableProps)
@@ -20,6 +19,11 @@ const emit = defineEmits<{
   'save-error': [error: any, isEdit: boolean]
   'delete-success': [record: any]
   'delete-error': [error: any, record: any]
+  // 增强搜索相关事件
+  'search-clear-all': []
+  'search-mode-change': [mode: any]
+  'search-params-change': [params: Record<string, any>]
+  'search-preset-save': [preset: any]
 }>()
 
 // 获取合并后的属性
@@ -77,6 +81,11 @@ function setTableData(data: any[]) {
   return cleverTableRef.value?.setTableData(data)
 }
 
+// 获取选中的记录
+function getSelectedRecords(): any[] {
+  return cleverTableRef.value?.getSelectedRecords() || []
+}
+
 // 暴露方法
 defineExpose({
   handleRefresh,
@@ -86,6 +95,7 @@ defineExpose({
   handleSave,
   setCheckedRowKeys,
   getCheckedRowKeys,
+  getSelectedRecords,
   updateSearchParams,
   getTableData,
   setTableData
@@ -106,6 +116,10 @@ defineExpose({
     @save-error="emit('save-error', $event)"
     @delete-success="emit('delete-success', $event)"
     @delete-error="emit('delete-error', $event)"
+    @search-clear-all="emit('search-clear-all')"
+    @search-mode-change="emit('search-mode-change', $event)"
+    @search-params-change="emit('search-params-change', $event)"
+    @search-preset-save="emit('search-preset-save', $event)"
   />
 </template>
 

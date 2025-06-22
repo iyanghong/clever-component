@@ -18,12 +18,33 @@ export function useForm<T extends Record<string, any> = any>(
   const loading = ref(false)
   const collapsed = ref(true)
 
+  // 获取实际的 schemas
+  const getActualSchemas = () => {
+    // 如果传入了 schemaConfig，优先使用其中的 schemas
+    if (props.schemaConfig && props.schemaConfig.schemas) {
+      return props.schemaConfig.schemas
+    }
+    // 否则使用直接传入的 schemas
+    return props.schemas || []
+  }
+
+  // 获取实际的 layoutConfig
+  const getActualLayoutConfig = () => {
+    // 如果传入了 schemaConfig，优先使用其中的 layoutConfig
+    if (props.schemaConfig && props.schemaConfig.layoutConfig) {
+      return props.schemaConfig.layoutConfig
+    }
+    // 否则使用直接传入的 layoutConfig
+    return props.layoutConfig || {}
+  }
+
   // 初始化表单数据
   const initFormModel = () => {
     const model = {} as T
     const fieldKeys = {} as Record<string, string>
+    const actualSchemas = getActualSchemas()
 
-    props.schemas.forEach(schema => {
+    actualSchemas.forEach(schema => {
       const field = schema.field as string
       model[field as keyof T] = schema.defaultValue ?? null
       fieldKeys[field] = `${field}-${Date.now()}`
@@ -38,9 +59,9 @@ export function useForm<T extends Record<string, any> = any>(
     formItemFieldKeys.value = fieldKeys
   }
 
-  // 监听schemas变化，重新初始化
+  // 监听schemas和schemaConfig变化，重新初始化
   watch(
-    () => props.schemas,
+    () => [props.schemas, props.schemaConfig],
     () => {
       initFormModel()
     },
@@ -270,8 +291,25 @@ export function useForm<T extends Record<string, any> = any>(
   })
 
   const getFormComponent = (schema: FormSchema) => {
+    // 组件名映射
+    const componentMap: Record<string, string> = {
+      'input': 'NInput',
+      'textarea': 'NInputTextArea', 
+      'input-number': 'NInputNumber',
+      'select': 'NSelect',
+      'checkbox-group': 'NCheckbox',
+      'radio-group': 'NRadioGroup',
+      'date-picker': 'NDatePicker',
+      'time-picker': 'NTimePicker',
+      'switch': 'NSwitch',
+      'slider': 'NSlider',
+      'rate': 'NRate',
+      'dynamic-tags': 'NDynamicTags'
+    }
+    
     // 根据schema.component返回对应的组件名
-    return schema.component || 'NInput'
+    const component = schema.component || 'NInput'
+    return componentMap[component] || component
   }
 
   // 方法集合
@@ -295,6 +333,8 @@ export function useForm<T extends Record<string, any> = any>(
     getFieldValue,
     setFormData,
     getFormData,
+    getActualSchemas,
+    getActualLayoutConfig,
     resetFields,
     clearValidate,
     validate,

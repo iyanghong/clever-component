@@ -8,7 +8,7 @@ import type {
   DeleteApiFn,
   ResponseBaseModel,
   PageResponseModel
-} from '@/types/response'
+} from '../../../../types/response'
 
 // 获取全量数据的API函数类型
 export type GetAllApiFn<T = any> = (
@@ -321,3 +321,20 @@ export type UseTableReturnType = [
     methods: CleverTableMethods
   }
 ]
+
+// 导出增强搜索相关类型
+export type {
+  SearchMode,
+  SearchPreset,
+  SearchHistory,
+  SearchState,
+  SearchStats,
+  QuickSearchConfig,
+  AdvancedSearchConfig,
+  SearchCacheConfig,
+  SearchExportConfig,
+  EnhancedSearchConfig,
+  UseSearchReturnType,
+  SearchComponentProps,
+  SearchComponentEmits
+} from './search'

@@ -1,7 +1,17 @@
-import { computed, h, nextTick, onMounted, reactive, ref } from 'vue'
+import { ref, reactive, computed, watch, nextTick, h, onMounted } from 'vue'
 import { useMessage, useDialog, NButton } from 'naive-ui'
 import { FormMode } from '../types'
-import type { CleverTableMethods, CleverTableProps, TableColumn, UseTableReturnType, TableAction, ActionConfig } from '../types'
+import type {
+  CleverTableMethods,
+  CleverTableProps,
+  TableColumn,
+  UseTableReturnType,
+  TableAction,
+  ActionConfig
+} from '../types'
+import { useEnhancedSearch } from './use-enhanced-search'
+import type { EnhancedSearchConfig } from '../types/search'
+import { SearchMode } from '../types/search'
 // 工具函数：判断是否为函数
 function isFunction(value: any): value is Function {
   return typeof value === 'function'
@@ -17,6 +27,71 @@ export function useTable(props: CleverTableProps, emit?: any) {
   const loading = ref(false)
   // 搜索参数
   const searchParams = reactive<Record<string, any>>({})
+
+  // 增强搜索配置
+  const enhancedSearchConfig: EnhancedSearchConfig = {
+    schemas: props.searchConfig?.schemas || [],
+    show: props.searchConfig?.show ?? true,
+    collapsible: props.searchConfig?.collapsible ?? false,
+    mode: SearchMode.SIMPLE,
+    performance: {
+      debounceDelay: 300,
+      smartSearch: true,
+      cache: { enabled: true, maxSize: 50, expireTime: 5 * 60 * 1000 }
+    },
+    quickSearch: {
+      enabled: true,
+      placeholder: '请输入关键词快速搜索',
+      fields: ['keyword'],
+      realtime: false
+    },
+    advancedSearch: {
+      enabled: (props.searchConfig?.schemas?.length || 0) > 4,
+      schemas: props.searchConfig?.schemas || []
+    },
+    presets: { enabled: true, allowSave: true, list: [] },
+    history: { enabled: true, maxRecords: 10, showInDropdown: true },
+    export: { enabled: true, formats: ['json', 'csv', 'url'] },
+    ui: {
+      showSearchStatus: true,
+      showResultStats: true,
+      showActiveConditions: true,
+      showClearAll: true
+    },
+    text: {
+      searchText: '搜索',
+      resetText: '重置',
+      clearAllText: '清空所有',
+      expandText: '展开',
+      collapseText: '收起',
+      simpleSearchText: '简单搜索',
+      advancedSearchText: '高级搜索',
+      quickSearchPlaceholder: '请输入关键词快速搜索'
+    }
+  }
+
+  // 使用增强搜索功能
+  const {
+    searchMode,
+    searchState,
+    activeConditionsCount,
+    hasActiveConditions,
+    canClearAll,
+    handleSearch: enhancedHandleSearch,
+    handleReset: enhancedHandleReset,
+    handleClearAll: enhancedHandleClearAll,
+    handleQuickSearch,
+    handleModeChange,
+    updateSearchParams: enhancedUpdateSearchParams,
+    savePreset,
+    deletePreset,
+    applyPreset,
+    getSearchHistory,
+    clearSearchHistory,
+    applyHistoryItem,
+    exportSearchParams,
+    importSearchParams
+  } = useEnhancedSearch(enhancedSearchConfig, loadData)
   // 分页参数
   const pagination = reactive({
     page: props.paginationConfig?.page || 1,
@@ -84,21 +159,35 @@ export function useTable(props: CleverTableProps, emit?: any) {
           title: actionConfig.title || props.actionColumnTitle || '操作',
           width: actionConfig.width || props.actionColumnWidth || 150,
           render: (record, index) => {
-            return h('div', { class: 'flex gap-2' },
-              actions.map(action => {
-                const show = typeof action.show === 'function' ? action.show(record) : action.show !== false
-                const disabled = typeof action.disabled === 'function' ? action.disabled(record) : action.disabled
+            return h(
+              'div',
+              { class: 'flex gap-2' },
+              actions
+                .map(action => {
+                  const show =
+                    typeof action.show === 'function'
+                      ? action.show(record)
+                      : action.show !== false
+                  const disabled =
+                    typeof action.disabled === 'function'
+                      ? action.disabled(record)
+                      : action.disabled
 
-                if (!show) return null
+                  if (!show) return null
 
-                return h(NButton, {
-                  size: action.size || 'small',
-                  type: action.type || 'primary',
-                  ghost: action.ghost,
-                  disabled,
-                  onClick: () => handleActionClick(action, record, index)
-                }, () => action.label)
-              }).filter(Boolean)
+                  return h(
+                    NButton,
+                    {
+                      size: action.size || 'small',
+                      type: action.type || 'primary',
+                      ghost: action.ghost,
+                      disabled,
+                      onClick: () => handleActionClick(action, record, index)
+                    },
+                    () => action.label
+                  )
+                })
+                .filter(Boolean)
             )
           }
         })
@@ -121,7 +210,7 @@ export function useTable(props: CleverTableProps, emit?: any) {
         label: actionConfig.viewText || '详情',
         type: 'info',
         ghost: true,
-        handler: (record) => handleOpenForm(FormMode.DETAIL, record),
+        handler: record => handleOpenForm(FormMode.DETAIL, record),
         ...actionConfig.viewProps
       })
     }
@@ -132,7 +221,7 @@ export function useTable(props: CleverTableProps, emit?: any) {
         key: 'edit',
         label: actionConfig.editText || '编辑',
         type: 'primary',
-        handler: (record) => handleOpenForm(FormMode.EDIT, record),
+        handler: record => handleOpenForm(FormMode.EDIT, record),
         ...actionConfig.editProps
       })
     }
@@ -146,9 +235,11 @@ export function useTable(props: CleverTableProps, emit?: any) {
         ghost: true,
         confirm: {
           title: props.deleteConfig?.title || '确认删除',
-          content: props.deleteConfig?.content || '确定要删除这条记录吗？删除后无法恢复。'
+          content:
+            props.deleteConfig?.content ||
+            '确定要删除这条记录吗？删除后无法恢复。'
         },
-        handler: (record) => handleDelete(record),
+        handler: record => handleDelete(record),
         ...actionConfig.deleteProps
       })
     }
@@ -287,7 +378,9 @@ export function useTable(props: CleverTableProps, emit?: any) {
     if ((isEdit || isView) && record) {
       if (props.apiConfig?.getApi) {
         try {
-          const response = await props.apiConfig.getApi(record[props.idField || 'id'])
+          const response = await props.apiConfig.getApi(
+            record[props.idField || 'id']
+          )
           if (response.code === 0) {
             formData = response.data
           } else {
@@ -318,7 +411,8 @@ export function useTable(props: CleverTableProps, emit?: any) {
     }
 
     const deleteTitle = props.deleteConfig?.title || '确认删除'
-    const deleteContent = props.deleteConfig?.content || '确定要删除这条数据吗？删除后无法恢复。'
+    const deleteContent =
+      props.deleteConfig?.content || '确定要删除这条数据吗？删除后无法恢复。'
 
     dialog.warning({
       title: deleteTitle,
@@ -331,14 +425,18 @@ export function useTable(props: CleverTableProps, emit?: any) {
             return
           }
           loading.value = true
-          const response = await props.apiConfig.deleteApi!(record[props.rowKey || 'id'])
+          const response = await props.apiConfig.deleteApi!(
+            record[props.rowKey || 'id']
+          )
 
           if (response.code === 0) {
             message.success(props.deleteConfig?.successMessage || '删除成功')
             emit?.('delete-success', record)
             await loadData()
           } else {
-            message.error(response.message || props.deleteConfig?.errorMessage || '删除失败')
+            message.error(
+              response.message || props.deleteConfig?.errorMessage || '删除失败'
+            )
           }
         } catch (error) {
           console.error('Delete error:', error)
@@ -364,7 +462,9 @@ export function useTable(props: CleverTableProps, emit?: any) {
     }
 
     const deleteTitle = props.deleteConfig?.batchTitle || '确认批量删除'
-    const deleteContent = props.deleteConfig?.batchContent || `确定要删除选中的 ${records.length} 条数据吗？删除后无法恢复。`
+    const deleteContent =
+      props.deleteConfig?.batchContent ||
+      `确定要删除选中的 ${records.length} 条数据吗？删除后无法恢复。`
 
     dialog.warning({
       title: deleteTitle,
@@ -381,12 +481,18 @@ export function useTable(props: CleverTableProps, emit?: any) {
           const response = await props.apiConfig.batchDeleteApi!(ids)
 
           if (response.code === 0) {
-            message.success(props.deleteConfig?.batchSuccessMessage || '批量删除成功')
+            message.success(
+              props.deleteConfig?.batchSuccessMessage || '批量删除成功'
+            )
             emit?.('delete-success', records)
             checkedRowKeys.value = []
             await loadData()
           } else {
-            message.error(response.message || props.deleteConfig?.batchErrorMessage || '批量删除失败')
+            message.error(
+              response.message ||
+                props.deleteConfig?.batchErrorMessage ||
+                '批量删除失败'
+            )
           }
         } catch (error) {
           console.error('Batch delete error:', error)
@@ -420,8 +526,8 @@ export function useTable(props: CleverTableProps, emit?: any) {
 
       if (response.code === 0) {
         const successMessage = isEdit
-          ? (props.saveConfig?.updateSuccessMessage || '更新成功')
-          : (props.saveConfig?.createSuccessMessage || '新增成功')
+          ? props.saveConfig?.updateSuccessMessage || '更新成功'
+          : props.saveConfig?.createSuccessMessage || '新增成功'
         message.success(successMessage)
 
         // 数据保存后处理
@@ -435,16 +541,16 @@ export function useTable(props: CleverTableProps, emit?: any) {
         return true
       } else {
         const errorMessage = isEdit
-          ? (props.saveConfig?.updateErrorMessage || '更新失败')
-          : (props.saveConfig?.createErrorMessage || '新增失败')
+          ? props.saveConfig?.updateErrorMessage || '更新失败'
+          : props.saveConfig?.createErrorMessage || '新增失败'
         message.error(response.message || errorMessage)
         return false
       }
     } catch (error) {
       console.error('Save error:', error)
       const errorMessage = isEdit
-        ? (props.saveConfig?.updateErrorMessage || '更新失败')
-        : (props.saveConfig?.createErrorMessage || '新增失败')
+        ? props.saveConfig?.updateErrorMessage || '更新失败'
+        : props.saveConfig?.createErrorMessage || '新增失败'
       message.error(errorMessage)
       emit?.('save-error', error, isEdit)
       return false
@@ -475,6 +581,7 @@ export function useTable(props: CleverTableProps, emit?: any) {
   function updateSearchParams(params: any) {
     Object.assign(searchParams, params)
     pagination.page = 1
+    enhancedUpdateSearchParams(params)
     loadData()
   }
 
@@ -501,9 +608,11 @@ export function useTable(props: CleverTableProps, emit?: any) {
     loadData()
   }
 
-  // 处理搜索
+  // 处理搜索 - 使用增强搜索功能
   function handleSearch(values: Record<string, any>) {
-    updateSearchParams(values)
+    Object.assign(searchParams, values)
+    pagination.page = 1
+    enhancedHandleSearch(values)
   }
 
   // 处理重置搜索
@@ -512,12 +621,21 @@ export function useTable(props: CleverTableProps, emit?: any) {
       delete searchParams[key]
     })
     pagination.page = 1
-    loadData()
+    enhancedHandleReset()
   }
 
   // 切换搜索表单折叠状态
   function toggleSearchCollapsed() {
     searchCollapsed.value = !searchCollapsed.value
+  }
+
+  // 增强搜索方法
+  function handleClearAllSearch() {
+    Object.keys(searchParams).forEach(key => {
+      delete searchParams[key]
+    })
+    pagination.page = 1
+    enhancedHandleClearAll()
   }
 
   // 组件挂载时自动加载数据
@@ -556,7 +674,24 @@ export function useTable(props: CleverTableProps, emit?: any) {
     handlePageSizeChange,
     handleSearch,
     handleResetSearch,
-    toggleSearchCollapsed
+    handleClearAllSearch,
+    toggleSearchCollapsed,
+    // 增强搜索功能
+    searchMode,
+    searchState,
+    activeConditionsCount,
+    hasActiveConditions,
+    canClearAll,
+    handleQuickSearch,
+    handleModeChange,
+    savePreset,
+    deletePreset,
+    applyPreset,
+    getSearchHistory,
+    clearSearchHistory,
+    applyHistoryItem,
+    exportSearchParams,
+    importSearchParams
   }
 }
 
@@ -568,14 +703,19 @@ export function createTable(): UseTableReturnType {
   }
   const methods: CleverTableMethods = {
     handleRefresh: () => tableInstance?.handleRefresh(),
-    handleOpenForm: (mode: FormMode, record?: any) => tableInstance?.handleOpenForm(mode, record),
+    handleOpenForm: (mode: FormMode, record?: any) =>
+      tableInstance?.handleOpenForm(mode, record),
     handleDelete: (record: any) => tableInstance?.handleDelete(record),
-    handleBatchDelete: (records: any[]) => tableInstance?.handleBatchDelete(records),
-    handleSave: (data: any, isEdit?: boolean) => tableInstance?.handleSave(data, isEdit) as any,
-    setCheckedRowKeys: (keys: (string | number)[]) => tableInstance?.setCheckedRowKeys(keys),
+    handleBatchDelete: (records: any[]) =>
+      tableInstance?.handleBatchDelete(records),
+    handleSave: (data: any, isEdit?: boolean) =>
+      tableInstance?.handleSave(data, isEdit) as any,
+    setCheckedRowKeys: (keys: (string | number)[]) =>
+      tableInstance?.setCheckedRowKeys(keys),
     getCheckedRowKeys: () => tableInstance?.getCheckedRowKeys() || [],
     getSelectedRecords: () => tableInstance?.getSelectedRecords() || [],
-    updateSearchParams: (params: any) => tableInstance?.updateSearchParams(params),
+    updateSearchParams: (params: any) =>
+      tableInstance?.updateSearchParams(params),
     getTableData: () => tableInstance?.getTableData() || [],
     setTableData: (data: any[]) => tableInstance?.setTableData(data)
   }

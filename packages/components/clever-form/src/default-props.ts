@@ -38,8 +38,14 @@ export default {
   },
   schemas: {
     type: Array as PropType<FormSchema[]>,
-    required: true,
+    required: false,
     default: () => []
+  },
+  // 支持直接传入辅助函数的返回值
+  schemaConfig: {
+    type: Object as PropType<{ schemas: FormSchema[], layoutConfig?: any }>,
+    required: false,
+    default: () => null
   },
   layout: {
     type: String,
@@ -127,7 +133,7 @@ export default {
   layoutMode: {
     type: String as PropType<'grid' | 'flex' | 'tabs' | 'accordion' | 'mixed'>,
     required: false,
-    default: () => 'grid'
+    default: () => 'mixed'
   },
   layoutConfig: {
     type: Object,

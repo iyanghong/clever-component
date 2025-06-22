@@ -43,6 +43,11 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/schema-helpers',
+    name: 'SchemaHelpers',
+    component: () => import('../demo/SchemaHelpersDemo.vue')
+  },
+  {
     path: '/clever-popup',
     name: 'CleverPopup',
     component: CleverPopupDemo,
