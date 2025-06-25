@@ -358,6 +358,7 @@ const saveConfig: SaveConfig = {
 
 // 操作列配置
 const actionConfig: ActionConfig = {
+  show: true, // 明确设置显示操作列
   title: '操作',
   width: 200,
   align: 'center',

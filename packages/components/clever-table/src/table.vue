@@ -14,160 +14,61 @@
     <NCard>
       <NSpace vertical>
         <!-- 表头操作 -->
-        <NSpace class="mb-4" justify="space-between" align="center">
-          <NSpace>
-            <template v-if="shouldShowHeaderActions">
-              <!-- 自定义头部操作按钮 -->
-              <NButton
-                v-for="action in props.headerActions"
-                :key="action.key"
-                :type="action.type || 'primary'"
-                :disabled="action.disabled"
-                @click="handleHeaderActionClick(action)"
-              >
-                <template v-if="action.icon" #icon>
-                  <NIcon>
-                    <component :is="action.icon" />
-                  </NIcon>
-                </template>
-                {{ action.label }}
-              </NButton>
-
-              <!-- 新增按钮 - 当传入 createApi 并配置 formConfig 时显示 -->
-              <NButton
-                v-if="props.apiConfig?.createApi && props.formConfig"
-                type="primary"
-                @click="handleOpenForm(FormMode.CREATE)"
-              >
-                <template #icon>
-                  <NIcon>
-                    <AddOutline />
-                  </NIcon>
-                </template>
-                新增
-              </NButton>
-
-              <!-- 批量删除按钮 - 当传入 batchDeleteApi 时显示 -->
-              <NButton
-                v-if="
-                  props.apiConfig?.batchDeleteApi && checkedRowKeys.length > 0
-                "
-                type="error"
-                @click="handleBatchDelete(getSelectedRecords())"
-              >
-                <template #icon>
-                  <NIcon>
-                    <TrashOutline />
-                  </NIcon>
-                </template>
-                批量删除 ({{ checkedRowKeys.length }})
-              </NButton>
-            </template>
-          </NSpace>
-
-          <!-- 表格工具栏 -->
-          <NSpace justify="end" align="center">
-            <!-- 刷新按钮 -->
-            <NTooltip trigger="hover">
-              <template #trigger>
-                <NButton
-                  text
-                  type="primary"
-                  size="small"
-                  @click="handleTableRefresh"
-                >
-                  <template #icon>
-                    <NIcon>
-                      <RefreshOutline />
-                    </NIcon>
-                  </template>
-                </NButton>
-              </template>
-              刷新数据
-            </NTooltip>
-
-            <!-- 斑马纹切换 -->
-            <NTooltip trigger="hover">
-              <template #trigger>
-                <NButton
-                  text
-                  :type="tableStriped ? 'primary' : 'default'"
-                  size="small"
-                  @click="toggleTableStriped"
-                >
-                  <template #icon>
-                    <NIcon>
-                      <GridOutline />
-                    </NIcon>
-                  </template>
-                </NButton>
-              </template>
-              {{ tableStriped ? '取消斑马纹' : '显示斑马纹' }}
-            </NTooltip>
-
-            <!-- 边框切换 -->
-            <NTooltip trigger="hover">
-              <template #trigger>
-                <NButton
-                  text
-                  :type="tableBordered ? 'primary' : 'default'"
-                  size="small"
-                  @click="toggleTableBordered"
-                >
-                  <template #icon>
-                    <NIcon>
-                      <AppsOutline />
-                    </NIcon>
-                  </template>
-                </NButton>
-              </template>
-              {{ tableBordered ? '取消边框' : '显示边框' }}
-            </NTooltip>
-
-            <!-- 列设置 -->
-            <NDropdown
-              trigger="click"
-              :options="columnSettingsOptions"
-              placement="bottom-end"
-            >
-              <NTooltip trigger="hover">
-                <template #trigger>
-                  <NButton text type="primary" size="small">
-                    <template #icon>
-                      <NIcon>
-                        <SettingsOutline />
-                      </NIcon>
-                    </template>
-                  </NButton>
-                </template>
-                列设置
-              </NTooltip>
-            </NDropdown>
-          </NSpace>
-        </NSpace>
+        <TableToolbar
+          :header-actions="props.headerActions"
+          :show-add="!!(props.apiConfig?.createApi && props.formConfig)"
+          :show-batch-delete="!!(props.apiConfig?.batchDeleteApi && checkedRowKeys.length > 0)"
+          :checked-count="checkedRowKeys.length"
+          :checked-row-keys="checkedRowKeys"
+          :striped="tableStriped"
+          :bordered="tableBordered"
+          :show-style-toggle="true"
+          :show-refresh="true"
+          @add="() => handleOpenForm(FormMode.CREATE)"
+          @batch-delete="handleBatchDelete"
+          @refresh="handleRefresh"
+          @toggle-striped="tableStriped = !tableStriped"
+          @toggle-bordered="tableBordered = !tableBordered"
+          @header-action-click="handleHeaderActionClick"
+        >
+          <template #column-settings>
+            <ColumnSettings
+              :columns="columnOptions"
+              :visible-columns="visibleColumns"
+              :column-order="columnOrder"
+              :show-left-unchecked="showLeftUncheckedColumns"
+              @update-visible="handleColumnSelect"
+              @update-order="handleColumnOrderChange"
+              @toggle-left-unchecked="toggleShowLeftUncheckedColumns"
+            />
+          </template>
+        </TableToolbar>
 
         <!-- 数据表格 -->
         <NDataTable v-bind="tableProps" />
 
         <!-- 分页 -->
-        <NSpace v-if="paginationProps" justify="end">
-          <NPagination v-bind="paginationProps" />
-        </NSpace>
+        <TablePagination
+          :page="pagination.page"
+          :page-size="pagination.pageSize"
+          :total="pagination.total"
+          :page-sizes="paginationConfig?.pageSizes"
+          :disabled="loading"
+          :show="paginationConfig?.show !== false"
+          @update-page="handlePageChange"
+          @update-page-size="handlePageSizeChange"
+        />
       </NSpace>
     </NCard>
     <!-- 表单弹窗 -->
-    <CleverForm
-      v-if="formConfig"
-      ref="formPopupRef"
-      :schemas="formConfig.schemas"
-      :is-popup="true"
-      :disabled="formPopupDisabled"
-      :popup-option="{
-        title: formConfig.title || '表单',
-        width: formConfig.width || '600px',
-        ...formConfig.popupProps
-      }"
-      @submit="handleFormSave"
+    <FormModal
+      v-if="props.formConfig"
+      ref="formModalRef"
+      :form-config="props.formConfig"
+      :mode="formMode"
+      :disabled="formMode === 'detail'"
+      @save="handleFormSave"
+      @open="emit('form-open', $event)"
     />
   </NSpace>
 </template>
@@ -175,7 +76,6 @@
 import { computed, h, ref, nextTick } from 'vue'
 import {
   NDataTable,
-  NPagination,
   NSpace,
   NButton,
   NCard,
@@ -183,27 +83,17 @@ import {
   NCollapseItem,
   NIcon,
   NTooltip,
-  NDropdown,
-  NCheckbox,
-  NCheckboxGroup,
-  NDivider
+  useMessage,
+  useDialog
 } from 'naive-ui'
-import Sortable from 'sortablejs'
-import type { SortableEvent } from 'sortablejs'
-import {
-  ChevronDownOutline,
-  ChevronUpOutline,
-  AddOutline,
-  TrashOutline,
-  CreateOutline,
-  EyeOutline,
-  RefreshOutline,
-  SettingsOutline,
-  GridOutline,
-  AppsOutline
-} from '@vicons/ionicons5'
+
 import CleverSearch from './components/CleverSearch.vue'
 import CleverForm from '../../clever-form/index.vue'
+import TableToolbar from './components/TableToolbar.vue'
+import TableActions from './components/TableActions.vue'
+import ColumnSettings from './components/ColumnSettings.vue'
+import TablePagination from './components/TablePagination.vue'
+import FormModal from './components/FormModal.vue'
 import { useTable } from './hook/use-table'
 import defaultCleverTableProps from './default-props'
 import { FormMode } from './types'
@@ -228,8 +118,7 @@ const emit = defineEmits<{
   'delete-error': [error: any, record: any]
 }>()
 
-// 导入必要的依赖
-import { useMessage, useDialog } from 'naive-ui'
+
 
 const {
   tableData,
@@ -260,9 +149,11 @@ const {
   emit
 )
 
-const formPopupRef = ref()
-const formPopupDisabled = ref<boolean>(false)
+const formModalRef = ref()
 const searchRef = ref()
+
+// 表单状态
+const formMode = ref<FormMode>('create')
 
 // 表格工具栏状态
 const tableStriped = ref(props.striped)
@@ -270,7 +161,6 @@ const tableBordered = ref(props.bordered)
 const visibleColumns = ref<string[]>([])
 const columnSettingsVisible = ref(false)
 const columnOrder = ref<string[]>([])
-const sortableInstance = ref<Sortable | null>(null)
 
 // 初始化可见列和列顺序
 const initVisibleColumns = () => {
@@ -373,18 +263,15 @@ const enhancedSearchConfig = computed<EnhancedSearchConfig>(() => {
 
 // 自定义的表单打开方法
 async function handleOpenForm(mode: FormMode, record?: any) {
-  if (!props.formConfig || !formPopupRef.value) {
+  if (!props.formConfig || !formModalRef.value) {
     console.warn('表单配置或表单引用不存在')
     return
   }
 
   try {
-    formPopupDisabled.value = mode == 'detail'
+    formMode.value = mode
     // 打开表单弹窗
-    formPopupRef.value.open(record)
-
-    // 触发表单打开事件
-    emit('form-open', record)
+    formModalRef.value.open(record)
   } catch (error) {
     console.error('打开表单失败:', error)
     const message = useMessage()
@@ -404,7 +291,7 @@ async function handleFormSave(formData: any) {
     const success = await handleSave(formData, isEdit)
     if (success) {
       // 保存成功，关闭弹窗
-      formPopupRef.value?.hidePopup()
+      formModalRef.value?.close()
     }
   } catch (error) {
     console.error('保存失败:', error)
@@ -565,57 +452,33 @@ function resetColumnSettings() {
   initVisibleColumns()
 }
 
-// 初始化拖拽排序
-const initSortable = (element: HTMLElement) => {
-  if (sortableInstance.value) {
-    sortableInstance.value.destroy()
-  }
 
-  sortableInstance.value = new Sortable(element, {
-    animation: 150,
-    ghostClass: 'sortable-ghost',
-    chosenClass: 'sortable-chosen',
-    dragClass: 'sortable-drag',
-    onEnd: (evt: SortableEvent) => {
-      const { oldIndex, newIndex } = evt
-      if (
-        oldIndex !== undefined &&
-        newIndex !== undefined &&
-        oldIndex !== newIndex
-      ) {
-        const newOrder = [...columnOrder.value]
-        const [movedItem] = newOrder.splice(oldIndex, 1)
-        newOrder.splice(newIndex, 0, movedItem)
-        columnOrder.value = newOrder
-      }
-    }
-  })
+
+// 处理列设置变化
+function handleColumnSelect(columns: string[]) {
+  visibleColumns.value = columns
 }
 
-// 处理列顺序重置
-function resetColumnOrder() {
-  columnOrder.value = props.columns
-    .filter(col => col.key)
-    .map(col => col.key as string)
-    .filter(Boolean)
+// 处理列顺序变化
+function handleColumnOrderChange(order: string[]) {
+  columnOrder.value = order
 }
+
+
 
 // 列设置选项（按照当前排序顺序）
 const columnOptions = computed(() => {
-  const orderedOptions = columnOrder.value
+  const orderedColumns = columnOrder.value
     .map(key => {
       const col = props.columns.find(c => c.key === key)
       if (col && col.hideable !== false) {
-        return {
-          label: col.title || col.key,
-          value: col.key as string
-        }
+        return col
       }
       return null
     })
     .filter(Boolean)
 
-  return orderedOptions
+  return orderedColumns as TableColumn[]
 })
 
 // 显示左边未勾选列的状态
@@ -625,175 +488,6 @@ const showLeftUncheckedColumns = ref(false)
 function toggleShowLeftUncheckedColumns() {
   showLeftUncheckedColumns.value = !showLeftUncheckedColumns.value
 }
-
-// 列设置下拉菜单选项
-const columnSettingsOptions = computed(() => {
-  return [
-    {
-      type: 'render',
-      key: 'column-settings',
-      render: () =>
-        h(
-          'div',
-          {
-            style: {
-              padding: '12px',
-              minWidth: '240px'
-            }
-          },
-          [
-            h(
-              'div',
-              {
-                style: {
-                  marginBottom: '8px',
-                  fontWeight: 'bold'
-                }
-              },
-              '列设置'
-            ),
-            h(NDivider, { style: { margin: '8px 0' } }),
-            h(
-              'div',
-              {
-                style: {
-                  marginBottom: '12px',
-                  fontSize: '12px',
-                  color: 'var(--n-text-color-disabled)'
-                }
-              },
-              '拖拽调整列顺序，勾选控制列显示'
-            ),
-            // 显示左边未勾选列的开关
-            h(
-              'div',
-              {
-                style: {
-                  marginBottom: '12px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }
-              },
-              [
-                h(
-                  NCheckbox,
-                  {
-                    checked: showLeftUncheckedColumns.value,
-                    onUpdateChecked: toggleShowLeftUncheckedColumns,
-                    style: {
-                      fontSize: '12px'
-                    }
-                  },
-                  {
-                    default: () => '显示左边未勾选列（固定左侧）'
-                  }
-                )
-              ]
-            ),
-            h(
-              'div',
-              {
-                ref: el => {
-                  if (el) {
-                    nextTick(() => {
-                      initSortable(el as HTMLElement)
-                    })
-                  }
-                },
-                class: 'column-sortable-list'
-              },
-              columnOptions.value.map(option =>
-                h(
-                  'div',
-                  {
-                    key: option.value,
-                    class: 'column-sortable-item',
-                    style: {
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '6px 8px',
-                      marginBottom: '2px',
-                      backgroundColor: 'var(--n-color-embedded)',
-                      borderRadius: '4px',
-                      cursor: 'move',
-                      userSelect: 'none'
-                    }
-                  },
-                  [
-                    h(
-                      'div',
-                      {
-                        style: {
-                          marginRight: '8px',
-                          color: 'var(--n-text-color-disabled)',
-                          fontSize: '12px'
-                        }
-                      },
-                      '⋮⋮'
-                    ),
-                    h(
-                      NCheckbox,
-                      {
-                        checked: visibleColumns.value.includes(option.value),
-                        onUpdateChecked: (checked: boolean) => {
-                          if (checked) {
-                            if (!visibleColumns.value.includes(option.value)) {
-                              visibleColumns.value = [
-                                ...visibleColumns.value,
-                                option.value
-                              ]
-                            }
-                          } else {
-                            visibleColumns.value = visibleColumns.value.filter(
-                              v => v !== option.value
-                            )
-                          }
-                        },
-                        style: {
-                          flex: 1
-                        }
-                      },
-                      {
-                        default: () => option.label
-                      }
-                    )
-                  ]
-                )
-              )
-            ),
-            h(NDivider, { style: { margin: '12px 0 8px 0' } }),
-            h(
-              'div',
-              {
-                style: {
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }
-              },
-              [
-                h(
-                  NButton,
-                  {
-                    size: 'small',
-                    onClick: resetColumnOrder
-                  },
-                  () => '重置顺序'
-                ),
-                h(
-                  NButton,
-                  {
-                    size: 'small',
-                    onClick: resetColumnSettings
-                  },
-                  () => '重置显示'
-                )
-              ]
-            )
-          ]
-        )
-    }
-  ]
-})
 
 // 暴露方法
 const methods: CleverTableMethods = {

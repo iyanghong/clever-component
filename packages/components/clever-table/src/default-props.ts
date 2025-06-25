@@ -127,7 +127,7 @@ export const defaultCleverTableProps = {
   // 是否显示选择列
   showSelectionColumn: {
     type: Boolean,
-    default: false
+    default: true
   },
   // 选中的行键
   checkedRowKeys: {

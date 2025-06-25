@@ -1,5 +1,5 @@
 import { ref, reactive, computed, watch, nextTick, h, onMounted } from 'vue'
-import { useMessage, useDialog, NButton } from 'naive-ui'
+import { useMessage, useDialog } from 'naive-ui'
 import { FormMode } from '../types'
 import type {
   CleverTableMethods,
@@ -12,6 +12,7 @@ import type {
 import { useEnhancedSearch } from './use-enhanced-search'
 import type { EnhancedSearchConfig } from '../types/search'
 import { SearchMode } from '../types/search'
+import TableActions from '../components/TableActions.vue'
 // 工具函数：判断是否为函数
 function isFunction(value: any): value is Function {
   return typeof value === 'function'
@@ -133,19 +134,20 @@ export function useTable(props: CleverTableProps, emit?: any) {
 
     // 智能操作列配置
     const shouldShowActions = computed(() => {
-      // 如果明确配置了 actionConfig，使用其配置
-      if (props.actionConfig) {
-        return props.actionConfig.show !== false
+      // 如果明确设置了 actionConfig.show，则以此为准
+      if (props.actionConfig?.show !== undefined) {
+        return props.actionConfig.show
       }
-
-      // 如果启用了自动显示操作列
+      
+      // 如果设置了 autoShowActions，则自动判断
       if (props.autoShowActions) {
-        const { getApi, updateApi, deleteApi } = props.apiConfig || {}
-        return !!(getApi || updateApi || deleteApi)
+        const hasBuiltInActions = !!(props.apiConfig?.getApi || props.apiConfig?.updateApi || props.apiConfig?.deleteApi)
+        const hasCustomActions = !!(props.actionConfig?.customButtons?.length || props.actions?.length)
+        return hasBuiltInActions || hasCustomActions
       }
-
-      // 兼容旧版本配置
-      return props.showActionColumn && props.actions && props.actions.length > 0
+      
+      // 兼容旧版本：如果有 actions 配置，则显示
+      return !!(props.actions?.length)
     })
 
     // 操作列
@@ -159,36 +161,15 @@ export function useTable(props: CleverTableProps, emit?: any) {
           title: actionConfig.title || props.actionColumnTitle || '操作',
           width: actionConfig.width || props.actionColumnWidth || 150,
           render: (record, index) => {
-            return h(
-              'div',
-              { class: 'flex gap-2' },
-              actions
-                .map(action => {
-                  const show =
-                    typeof action.show === 'function'
-                      ? action.show(record)
-                      : action.show !== false
-                  const disabled =
-                    typeof action.disabled === 'function'
-                      ? action.disabled(record)
-                      : action.disabled
-
-                  if (!show) return null
-
-                  return h(
-                    NButton,
-                    {
-                      size: action.size || 'small',
-                      type: action.type || 'primary',
-                      ghost: action.ghost,
-                      disabled,
-                      onClick: () => handleActionClick(action, record, index)
-                    },
-                    () => action.label
-                  )
-                })
-                .filter(Boolean)
-            )
+            return h(TableActions, {
+              actions,
+              record,
+              index,
+              onActionClick: (action, record, index) => {
+                handleActionClick(action, record, index)
+                emit?.('action-click', action.key, record, index)
+              }
+            })
           }
         })
       }
@@ -260,22 +241,7 @@ export function useTable(props: CleverTableProps, emit?: any) {
   // 处理操作点击
   function handleActionClick(action: any, record: any, index: number) {
     const handler = action.handler || action.onClick
-
-    if (action.confirm) {
-      dialog.warning({
-        title: action.confirm.title || '确认操作',
-        content: action.confirm.content || '确定要执行此操作吗？',
-        positiveText: '确定',
-        negativeText: '取消',
-        onPositiveClick: () => {
-          handler?.(record, index)
-          emit?.('action-click', action.key, record, index)
-        }
-      })
-    } else {
-      handler?.(record, index)
-      emit?.('action-click', action.key, record, index)
-    }
+    handler?.(record, index)
   }
 
   // 加载数据
