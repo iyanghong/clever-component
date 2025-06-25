@@ -6,15 +6,19 @@
       <FormRenderer
         :schemas="schemas"
         :form-model="formModel"
-        :methods="{
+        :form-methods="{
           getFormItemProps: getFormItemPropsMethod,
           getComponentProps: getComponentPropsMethod,
           getFormComponent: getFormComponent,
           setFieldValue: setFieldValue,
           handleFieldChange: handleFieldChangeMethod
         }"
+        :get-form-item-props="getFormItemPropsMethod"
+        :get-component-props="getComponentPropsMethod"
+        :handle-field-change="handleFieldChangeMethod"
         :layout-config="layoutConfig"
         :is-only-show-one-row="isOnlyShowOneRow"
+        :is-mixed-layout="true"
       />
       
       <!-- 操作按钮组 -->

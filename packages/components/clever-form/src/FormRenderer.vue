@@ -1,103 +1,127 @@
 <template>
   <div class="form-renderer">
-    <template v-for="(schema, index) in schemas" :key="getSchemaKey(schema, index)">
-      <!-- 容器类型渲染 -->
-      <template v-if="schema.type === 'container'">
-        <!-- Tabs 容器 -->
-        <n-tabs
-          v-if="schema.containerType === 'tabs'"
-          v-bind="getContainerConfig(schema, 'tabs')"
-          :class="schema.className"
-          :style="schema.style"
-        >
-          <n-tab-pane
-            v-for="child in schema.children"
-            :key="child.name || child.field"
-            :name="child.name || child.field"
-            :tab="child.title || child.label"
-          >
+    <!-- 混合布局模式：最外层使用Grid布局 -->
+    <template v-if="isMixedLayout && !isNestedContainer">
+      <n-grid v-bind="getOuterGridConfig()" class="mixed-layout-grid">
+        <template v-for="(schema, index) in schemas" :key="getSchemaKey(schema, index)">
+          <n-gi v-bind="getOuterGridItemProps(schema)">
             <FormRenderer
-              :schemas="child.children || [child]"
+              :schemas="[schema]"
               :form-model="formModel"
               :form-methods="formMethods"
               :layout-config="layoutConfig"
+              :is-nested-container="true"
             />
-          </n-tab-pane>
-        </n-tabs>
+          </n-gi>
+        </template>
+      </n-grid>
+    </template>
 
-        <!-- Accordion 容器 -->
-        <n-collapse
-          v-else-if="schema.containerType === 'accordion'"
-          v-bind="getAccordionConfig(schema)"
-          :class="schema.className"
-          :style="schema.style"
-        >
-          <n-collapse-item
-            v-for="child in schema.children"
-            :key="child.name || child.field"
-            :name="child.name || child.field"
-            :title="child.title || child.label"
+    <!-- 普通渲染模式 -->
+    <template v-else>
+      <template v-for="(schema, index) in schemas" :key="getSchemaKey(schema, index)">
+        <!-- 容器类型渲染 -->
+        <template v-if="schema.type === 'container'">
+          <!-- Tabs 容器 -->
+          <n-tabs
+            v-if="schema.containerType === 'tabs'"
+            v-bind="getContainerConfig(schema, 'tabs')"
+            :class="schema.className"
+            :style="schema.style"
+          >
+            <n-tab-pane
+              v-for="child in schema.children"
+              :key="child.name || child.field"
+              :name="child.name || child.field"
+              :tab="child.title || child.label"
+            >
+              <FormRenderer
+                :schemas="child.children || [child]"
+                :form-model="formModel"
+                :form-methods="formMethods"
+                :layout-config="layoutConfig"
+                :is-nested-container="true"
+              />
+            </n-tab-pane>
+          </n-tabs>
+
+          <!-- Accordion 容器 -->
+          <n-collapse
+            v-else-if="schema.containerType === 'accordion'"
+            v-bind="getAccordionConfig(schema)"
+            :class="schema.className"
+            :style="schema.style"
+          >
+            <n-collapse-item
+              v-for="child in schema.children"
+              :key="child.name || child.field"
+              :name="child.name || child.field"
+              :title="child.title || child.label"
+            >
+              <FormRenderer
+                :schemas="child.children || [child]"
+                :form-model="formModel"
+                :form-methods="formMethods"
+                :layout-config="layoutConfig"
+                :is-nested-container="true"
+              />
+            </n-collapse-item>
+          </n-collapse>
+
+          <!-- Grid 容器 -->
+          <n-grid
+            v-else-if="schema.containerType === 'grid'"
+            v-bind="getContainerConfig(schema, 'grid')"
+            :class="schema.className"
+            :style="schema.style"
           >
             <FormRenderer
-              :schemas="child.children || [child]"
+              :schemas="schema.children"
               :form-model="formModel"
               :form-methods="formMethods"
               :layout-config="layoutConfig"
+              :is-grid-container="true"
+              :is-nested-container="true"
             />
-          </n-collapse-item>
-        </n-collapse>
+          </n-grid>
 
-        <!-- Grid 容器 -->
-        <n-grid
-          v-else-if="schema.containerType === 'grid'"
-          v-bind="getContainerConfig(schema, 'grid')"
-          :class="schema.className"
-          :style="schema.style"
-        >
-          <FormRenderer
-            :schemas="schema.children"
-            :form-model="formModel"
-            :form-methods="formMethods"
-            :layout-config="layoutConfig"
-            :is-grid-container="true"
-          />
-        </n-grid>
+          <!-- Flex 容器 -->
+          <n-flex
+            v-else-if="schema.containerType === 'flex'"
+            v-bind="getContainerConfig(schema, 'flex')"
+            :class="schema.className"
+            :style="schema.style"
+          >
+            <FormRenderer
+              :schemas="schema.children"
+              :form-model="formModel"
+              :form-methods="formMethods"
+              :layout-config="layoutConfig"
+              :is-flex-container="true"
+              :is-nested-container="true"
+            />
+          </n-flex>
 
-        <!-- Flex 容器 -->
-        <n-flex
-          v-else-if="schema.containerType === 'flex'"
-          v-bind="getContainerConfig(schema, 'flex')"
-          :class="schema.className"
-          :style="schema.style"
-        >
-          <FormRenderer
-            :schemas="schema.children"
-            :form-model="formModel"
-            :form-methods="formMethods"
-            :layout-config="layoutConfig"
-            :is-flex-container="true"
-          />
-        </n-flex>
+          <!-- Card 容器 -->
+          <n-card
+            v-else-if="schema.containerType === 'card'"
+            v-bind="getContainerConfig(schema, 'card')"
+            :class="schema.className"
+            :style="schema.style"
+            :title="schema.title"
+          >
+            <FormRenderer
+              :schemas="schema.children"
+              :form-model="formModel"
+              :form-methods="formMethods"
+              :layout-config="layoutConfig"
+              :is-nested-container="true"
+            />
+          </n-card>
 
-        <!-- Card 容器 -->
-        <n-card
-          v-else-if="schema.containerType === 'card'"
-          v-bind="getContainerConfig(schema, 'card')"
-          :class="schema.className"
-          :style="schema.style"
-          :title="schema.title"
-        >
-          <FormRenderer
-            :schemas="schema.children"
-            :form-model="formModel"
-            :form-methods="formMethods"
-            :layout-config="layoutConfig"
-          />
-        </n-card>
-
-        <!-- Divider 容器 -->
-        <template v-else-if="schema.containerType === 'divider'">
-          <n-divider
+          <!-- Divider 容器 -->
+          <template v-else-if="schema.containerType === 'divider'">
+            <n-divider
             v-if="schema.title"
             :title-placement="schema.config?.titlePlacement || 'center'"
           >
@@ -218,12 +242,16 @@ interface Props {
   layoutConfig?: LayoutConfig
   isGridContainer?: boolean
   isFlexContainer?: boolean
+  isMixedLayout?: boolean
+  isNestedContainer?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   layoutConfig: () => ({}),
   isGridContainer: false,
-  isFlexContainer: false
+  isFlexContainer: false,
+  isMixedLayout: false,
+  isNestedContainer: false
 })
 
 // 获取 Schema 的唯一键
@@ -271,6 +299,59 @@ const getFlexItemStyle = (schema: FormSchema) => {
     minWidth: layout.minWidth || 'auto',
     maxWidth: layout.maxWidth || 'none',
     ...layout.style
+  }
+}
+
+// 获取外层Grid配置（混合布局模式）
+const getOuterGridConfig = () => {
+  const defaultConfig = {
+    cols: '1 s:1 m:2 l:3 xl:4 2xl:4',
+    xGap: 16,
+    yGap: 16,
+    responsive: true
+  }
+  
+  const gridConfig = props.layoutConfig?.grid || {}
+  return {
+    ...defaultConfig,
+    ...gridConfig
+  }
+}
+
+// 获取外层Grid项属性（混合布局模式）
+const getOuterGridItemProps = (schema: FormSchema | FormContainerSchema) => {
+  // 容器类型默认占用更多空间
+  if (schema.type === 'container') {
+    const containerSpan = getContainerSpan(schema.containerType)
+    return {
+      span: containerSpan,
+      ...schema.gridProps
+    }
+  }
+  
+  // 普通字段使用默认span
+  const layout = (schema as FormSchema).layout || {}
+  return {
+    span: layout.span || 1,
+    offset: layout.offset || 0,
+    ...schema.gridProps
+  }
+}
+
+// 获取容器类型的默认span值
+const getContainerSpan = (containerType?: string) => {
+  switch (containerType) {
+    case 'tabs':
+    case 'accordion':
+    case 'card':
+      return '1 s:1 m:2 l:3 xl:4 2xl:4' // 占满整行
+    case 'grid':
+    case 'flex':
+      return '1 s:1 m:2 l:2 xl:2 2xl:2' // 占半行
+    case 'divider':
+      return '1 s:1 m:2 l:3 xl:4 2xl:4' // 占满整行
+    default:
+      return 1
   }
 }
 </script>

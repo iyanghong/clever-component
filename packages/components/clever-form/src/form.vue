@@ -5,7 +5,6 @@
       v-bind="getProps"
       :model="formModel"
       @keydown.enter="handleSubmit"
-      :disabled="true"
     >
       <!-- 混合布局模式 -->
       <template v-if="layoutMode === 'mixed'">
@@ -88,10 +87,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { NForm } from 'naive-ui'
-import { useForm } from './hook/use-form'
+import { ref } from 'vue'
 import LayoutRenderer from './components/LayoutRenderer.vue'
+import { useForm } from './hook/use-form'
 import type { CleverFormProps } from './types/form'
 
 defineOptions({

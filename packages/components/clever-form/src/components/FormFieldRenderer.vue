@@ -114,6 +114,7 @@ const {
 
 // 使用传入的函数或默认函数
 const getFormItemProps = props.getFormItemProps || defaultGetFormItemProps
+console.log(getFormItemProps(props.schema))
 const getComponentProps = props.getComponentProps || defaultGetComponentProps
 const handleFieldChange = props.handleFieldChange || defaultHandleFieldChange
 </script>

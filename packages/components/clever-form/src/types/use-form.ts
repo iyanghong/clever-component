@@ -1,6 +1,6 @@
-import type { Ref, ComputedRef } from 'vue'
 import type { ButtonProps } from 'naive-ui/lib/button'
-import type { FormFieldSchema, FormSchema, CleverFormMethods } from './form'
+import type { Ref } from 'vue'
+import type { CleverFormMethods, FormFieldSchema, FormSchema } from './form'
 
 /**
  * useForm Hook 返回值类型定义
@@ -27,7 +27,7 @@ export interface UseFormReturn<T extends Record<string, any> = any> {
   setFormData: (values: Partial<T>) => void
   /** 获取表单数据 */
   getFormData: () => T
-  
+
   // 计算属性和方法
   /** 获取schema */
   getSchema: () => FormSchema[]
@@ -35,12 +35,14 @@ export interface UseFormReturn<T extends Record<string, any> = any> {
   getActualSchemas: () => FormSchema[]
   /** 获取实际的布局配置 */
   getActualLayoutConfig: () => Record<string, any>
-  
+
   // 表单项相关方法
   /** 获取表单项属性 */
   getFormItemProps: (schema: FormFieldSchema) => Record<string, any>
   /** 获取组件属性 */
   getComponentProps: (schema: FormFieldSchema) => Record<string, any>
+  /** 递归获取所有字段的校验规则 */
+  getAllFieldRules: () => Record<string, any>
   /** 获取网格属性 */
   getGrid: () => Record<string, any>
   /** 获取重置按钮选项 */
@@ -59,17 +61,21 @@ export interface UseFormReturn<T extends Record<string, any> = any> {
   getFlexStyle: () => Record<string, any>
   /** 获取flex项样式 */
   getFlexItemStyle: (schema: FormFieldSchema) => Record<string, any>
-  
+
   // 表单操作方法
   /** 字段变化处理 */
-  handleFieldChange: (schema: FormFieldSchema, newValue: any, oldValue: any) => void
+  handleFieldChange: (
+    schema: FormFieldSchema,
+    newValue: any,
+    oldValue: any
+  ) => void
   /** 重置表单 */
   handleReset: () => void
   /** 提交表单 */
   handleSubmit: () => Promise<void>
   /** 切换折叠状态 */
   unfoldToggle: () => void
-  
+
   // 表单验证和操作
   /** 重置字段 */
   resetFields: () => Promise<void>
@@ -77,7 +83,7 @@ export interface UseFormReturn<T extends Record<string, any> = any> {
   clearValidate: (name?: string | string[]) => Promise<void>
   /** 验证表单 */
   validate: (nameList?: any[]) => Promise<any>
-  
+
   // 工具方法
   /** 判断是否为表单字段schema */
   isFormFieldSchema: (schema: any) => boolean
@@ -87,7 +93,7 @@ export interface UseFormReturn<T extends Record<string, any> = any> {
   getProps: () => Record<string, any>
   /** 获取表单组件 */
   getFormComponent: (schema: FormSchema) => string
-  
+
   // 表单方法集合
   /** 表单方法集合 */
   methods: CleverFormMethods<T>
@@ -119,5 +125,9 @@ export interface LayoutRendererFormProps {
   /** 获取flex项样式 */
   getFlexItemStyle: (schema: FormFieldSchema) => Record<string, any>
   /** 字段变化处理 */
-  handleFieldChange: (schema: FormFieldSchema, newValue: any, oldValue: any) => void
+  handleFieldChange: (
+    schema: FormFieldSchema,
+    newValue: any,
+    oldValue: any
+  ) => void
 }

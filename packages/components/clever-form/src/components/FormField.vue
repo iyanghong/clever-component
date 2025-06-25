@@ -92,7 +92,7 @@
     <!-- NDynamicTags -->
     <template v-else-if="getActualComponent(schema.component) === 'NDynamicTags'">
       <NDynamicTags v-model:value="formModel[schema.field as string]" v-bind="getComponentProps(schema)"
-        @update:value="(val) => handleFieldChange(schema, val, formModel[schema.field as string])" />
+        @update:value="(val:any) => handleFieldChange(schema, val, formModel[schema.field as string])" />
     </template>
 
     <!-- NInputTextArea -->
@@ -135,10 +135,10 @@ import {
   NTooltip,
   NIcon
 } from 'naive-ui'
-import type { FormSchema, CleverFormMethods } from '../types/form'
+import { FormSchema, CleverFormMethods, FormFieldSchema } from '../types/form'
 
 interface Props {
-  schema: FormSchema
+  schema: FormFieldSchema
   formModel: Record<string, any>
   methods: CleverFormMethods
 }
@@ -167,13 +167,17 @@ const getActualComponent = (component: string) => {
 }
 
 // 获取表单项属性
-const getFormItemProps = (schema: FormSchema) => {
+const getFormItemProps = (schema: FormFieldSchema) => {
   const baseProps = {
     label: schema.label,
     path: schema.field,
-    rule: schema.rules,
+    // 注意：不在这里设置 rules，因为 NForm 已经通过全局 rules 属性管理校验规则
+    // rules: schema.rules, // 移除这行，避免与 NForm 的全局 rules 冲突
     labelWidth: schema.labelWidth,
-    showRequiredMark: schema.required
+    showRequiredMark: schema.required,
+    // 确保校验状态能正确传递
+    showFeedback: true,
+    validationStatus: undefined // 让naive-ui自动管理校验状态
   }
   
   // 过滤掉undefined的属性
@@ -183,7 +187,7 @@ const getFormItemProps = (schema: FormSchema) => {
 }
 
 // 获取组件属性
-const getComponentProps = (schema: FormSchema) => {
+const getComponentProps = (schema: FormFieldSchema) => {
   // 兼容 props 和 componentProps 两种写法
   const schemaProps = schema.componentProps || schema.props || {}
   
@@ -199,7 +203,7 @@ const getComponentProps = (schema: FormSchema) => {
 }
 
 // 处理字段值变化
-const handleFieldChange = (schema: FormSchema, newValue: any, oldValue: any) => {
+const handleFieldChange = (schema: FormFieldSchema, newValue: any, oldValue: any) => {
   if (schema.onChange) {
     schema.onChange(newValue, oldValue, props.methods)
   }

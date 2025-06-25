@@ -41,7 +41,6 @@ export function useFormFieldRenderer(props: UseFormFieldRendererProps) {
       labelWidth: schema.labelWidth,
       showRequiredMark: schema.required
     }
-
     // 过滤掉undefined的属性
     return Object.fromEntries(
       Object.entries(baseProps).filter(([_, value]) => value !== undefined)

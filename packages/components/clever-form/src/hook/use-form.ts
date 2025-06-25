@@ -1,14 +1,14 @@
-import { ref, computed, watch, nextTick, unref } from 'vue'
-import type { Ref } from 'vue'
 import { cloneDeep } from 'lodash-es'
-import { isArray, isFunction, isObject } from '../../../../utils/is'
+import type { Ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { isFunction, isObject } from '../../../../utils/is'
 import type {
+  CleverFormMethods,
   CleverFormProps,
-  FormSchema,
+  FormContainerSchema,
   FormFieldSchema,
   FormGroupSchema,
-  FormContainerSchema,
-  CleverFormMethods
+  FormSchema
 } from '../types/form'
 import type { UseFormReturn } from '../types/use-form'
 
@@ -21,12 +21,14 @@ export function useForm<T extends Record<string, any> = any>(
   const formItemFieldKeys = ref<Record<string, string>>({})
   const loading = ref<boolean>(false)
   const collapsed = ref<boolean>(props.collapsed ?? true)
-  const isOnlyShowOneRow = ref<boolean>(collapsed.value && (props.onlyShowOneRow || false))
+  const isOnlyShowOneRow = ref<boolean>(
+    collapsed.value && (props.onlyShowOneRow || false)
+  )
 
   // 监听 props.collapsed 变化
   watch(
     () => props.collapsed,
-    (newCollapsed) => {
+    newCollapsed => {
       if (newCollapsed !== undefined) {
         collapsed.value = newCollapsed
       }
@@ -197,10 +199,15 @@ export function useForm<T extends Record<string, any> = any>(
         await props.submitFunc()
       }
     } catch (error) {
+      // 当 naive-ui 表单校验失败时，validate() 方法会抛出包含错误信息的 Promise rejection
+      // 这里不需要额外处理，因为 naive-ui 会自动显示校验失败的视觉效果
       console.error('Form validation failed:', error)
+      // 确保不继续执行后续逻辑
+      return false
     } finally {
       loading.value = false
     }
+    return true
   }
 
   // 重置处理
@@ -265,7 +272,7 @@ export function useForm<T extends Record<string, any> = any>(
       path: field,
       label,
       labelWidth: labelWidth || props.labelWidth,
-      rule: rules,
+      rules: rules,
       required
     }
 
@@ -280,6 +287,38 @@ export function useForm<T extends Record<string, any> = any>(
     return baseProps
   }
 
+  // 递归获取所有字段的校验规则
+  const getAllFieldRules = (): Record<string, any> => {
+    const rules: Record<string, any> = {}
+    const actualSchemas = getActualSchemas()
+
+    // 递归提取所有字段的校验规则
+    const extractRulesFromSchemas = (schemas: FormSchema<T>[]) => {
+      schemas.forEach(schema => {
+        // 如果是FormFieldSchema（有field属性）
+        if ('field' in schema) {
+          const fieldSchema = schema as FormFieldSchema<T>
+          if (fieldSchema.rules && fieldSchema.rules.length > 0) {
+            rules[fieldSchema.field as string] = fieldSchema.rules
+          }
+        }
+        // 如果是FormGroupSchema（有fields属性）
+        else if ('fields' in schema) {
+          const groupSchema = schema as FormGroupSchema<T>
+          extractRulesFromSchemas(groupSchema.fields)
+        }
+        // 如果是FormContainerSchema（有children属性）
+        else if ('children' in schema) {
+          const containerSchema = schema as FormContainerSchema<T>
+          extractRulesFromSchemas(containerSchema.children)
+        }
+      })
+    }
+
+    extractRulesFromSchemas(actualSchemas)
+    return rules
+  }
+
   // 获取表单属性
   const getProps = computed(() => {
     return {
@@ -288,7 +327,8 @@ export function useForm<T extends Record<string, any> = any>(
       labelPlacement: props.labelPlacement,
       labelWidth: props.labelWidth,
       inline: props.inline,
-      disabled: props.disabled
+      disabled: props.disabled,
+      rules: getAllFieldRules() // 添加所有字段的校验规则
     }
   })
 
@@ -298,6 +338,7 @@ export function useForm<T extends Record<string, any> = any>(
       ...props.gridProps
     }
   })
+  console.log(getProps.value)
 
   // 获取显示的schema
   const getSchema = computed(() => {
@@ -490,6 +531,7 @@ export function useForm<T extends Record<string, any> = any>(
     unfoldToggle,
     getComponentProps,
     getFormItemProps,
+    getAllFieldRules, // 暴露获取所有字段校验规则的方法
     getProps: () => getProps.value,
     getGrid: () => getGrid.value,
     getSchema: () => getSchema.value,

@@ -1,18 +1,15 @@
-import type { CSSProperties, ComputedRef, Ref } from 'vue'
-import type { GridItemProps, GridProps } from 'naive-ui/lib/grid'
-import type { ButtonProps } from 'naive-ui/lib/button'
-import type { FormProps } from 'naive-ui'
+import type { FormItemRule, FormProps } from 'naive-ui'
 import type { LabelPlacement, Size } from 'naive-ui/es/form/src/interface'
+import type { ButtonProps } from 'naive-ui/lib/button'
+import type { GridItemProps, GridProps } from 'naive-ui/lib/grid'
+import type {
+  CreateApiFn,
+  DeleteApiFn,
+  GetApiFn,
+  UpdateApiFn
+} from '../../../../types/response'
 import type { CleverPopupProps } from '../../../clever-popup/types'
 import type { ComponentType } from './index'
-import type {
-  GetApiFn,
-  CreateApiFn,
-  UpdateApiFn,
-  DeleteApiFn,
-  ResponseBaseModel,
-  PageResponseModel
-} from '../../../../types/response'
 
 export interface CleverFormMethods<T extends Record<string, any> = any> {
   resetFields: () => Promise<void>
@@ -45,7 +42,7 @@ export interface FormFieldSchema<T extends Record<string, any> = any> {
   /** 自定义插槽名 */
   slot?: string
   /** 验证规则 */
-  rules?: Record<string, any> | Record<string, any>[]
+  rules?: FormItemRule | FormItemRule[]
   /** 网格项属性 */
   giProps?: GridItemProps
   /** 是否占满整行 */
@@ -57,10 +54,14 @@ export interface FormFieldSchema<T extends Record<string, any> = any> {
   /** 条件显示函数 */
   ifShow?: (formModel: T, value: any, methods: CleverFormMethods<T>) => boolean
   /** 值变化回调 */
-  onChange?: (newValue: any, oldValue: any, methods: CleverFormMethods<T>) => void | Promise<void>
+  onChange?: (
+    newValue: any,
+    oldValue: any,
+    methods: CleverFormMethods<T>
+  ) => void | Promise<void>
   /** 显示模式 */
   showMode?: 'edit' | 'detail' | 'disable' | 'hidden'
-  
+
   /** 字段布局配置 */
   layout?: {
     /** 占用列数 */
@@ -81,7 +82,7 @@ export interface FormFieldSchema<T extends Record<string, any> = any> {
     /** 自定义类名 */
     className?: string
   }
-  
+
   /** 字段分组 */
   group?: {
     /** 分组名称 */
@@ -97,13 +98,13 @@ export interface FormFieldSchema<T extends Record<string, any> = any> {
     /** 默认是否展开 */
     defaultExpanded?: boolean
   }
-  
+
   /** 字段排序权重 */
   order?: number
-  
+
   /** 换行控制 */
   breakLine?: boolean
-  
+
   /** 其他属性 */
   [key: string]: any
 }
@@ -147,13 +148,18 @@ export interface FormContainerSchema<T extends Record<string, any> = any> {
   style?: Record<string, any>
   /** 容器类名 */
   className?: string
+  /** Grid布局属性（用于混合布局中的Grid项配置） */
+  gridProps?: Record<string, any>
   /** 条件显示函数 */
   ifShow?: (formModel: T, methods: CleverFormMethods<T>) => boolean
   /** 排序权重 */
   order?: number
 }
 
-export type FormSchema<T extends Record<string, any> = any> = FormFieldSchema<T> | FormGroupSchema<T> | FormContainerSchema<T>
+export type FormSchema<T extends Record<string, any> = any> =
+  | FormFieldSchema<T>
+  | FormGroupSchema<T>
+  | FormContainerSchema<T>
 
 export interface FormApiConfig<T extends Record<string, any> = any> {
   // 获取单条数据的API
@@ -230,13 +236,13 @@ export interface CleverFormProps<T extends Record<string, any> = any> {
   submitOnReset?: boolean
   /** 折叠行数 */
   collapsedRows?: number
-  
+
   /** 布局模式 */
   layoutMode?: 'grid' | 'flex' | 'tabs' | 'accordion' | 'mixed'
-  
+
   /** 布局配置 */
   layoutConfig?: LayoutConfig
-  
+
   /** 其他属性 */
   [key: string]: any
 }
@@ -267,7 +273,7 @@ export interface LayoutConfig {
     /** 响应式断点 */
     responsive?: boolean
   }
-  
+
   /** Flex布局配置 */
   flex?: {
     /** 主轴方向 */
@@ -275,13 +281,19 @@ export interface LayoutConfig {
     /** 换行方式 */
     wrap?: 'nowrap' | 'wrap' | 'wrap-reverse'
     /** 主轴对齐 */
-    justify?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly'
+    justify?:
+      | 'flex-start'
+      | 'flex-end'
+      | 'center'
+      | 'space-between'
+      | 'space-around'
+      | 'space-evenly'
     /** 交叉轴对齐 */
     align?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline'
     /** 间距 */
     gap?: number
   }
-  
+
   /** 标签页布局配置 */
   tabs?: {
     /** 标签页位置 */
@@ -293,7 +305,7 @@ export interface LayoutConfig {
     /** 是否可添加 */
     addable?: boolean
   }
-  
+
   /** 手风琴布局配置 */
   accordion?: {
     /** 是否手风琴模式 */
@@ -303,7 +315,7 @@ export interface LayoutConfig {
     /** 展开图标位置 */
     arrowPlacement?: 'left' | 'right'
   }
-  
+
   /** 卡片布局配置 */
   card?: {
     /** 卡片标题 */
