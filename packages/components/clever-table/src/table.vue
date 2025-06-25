@@ -7,6 +7,8 @@
         :onlyShowOneRow="true"
         :showActionButtonGroup="true"
         :showAdvancedButton="true"
+        submit-button-text="搜索"
+        @submit="handleRefresh"
       ></CleverForm>
     </NCard>
     <NCard>

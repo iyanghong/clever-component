@@ -20,13 +20,23 @@ export function useForm<T extends Record<string, any> = any>(
   const formModel = ref<T>({} as T)
   const formItemFieldKeys = ref<Record<string, string>>({})
   const loading = ref<boolean>(false)
-  const collapsed = ref<boolean>(true)
-  const isOnlyShowOneRow = ref<boolean>(props.onlyShowOneRow || false)
+  const collapsed = ref<boolean>(props.collapsed ?? true)
+  const isOnlyShowOneRow = ref<boolean>(collapsed.value && (props.onlyShowOneRow || false))
+
+  // 监听 props.collapsed 变化
+  watch(
+    () => props.collapsed,
+    (newCollapsed) => {
+      if (newCollapsed !== undefined) {
+        collapsed.value = newCollapsed
+      }
+    }
+  )
 
   watch(
-    () => props.onlyShowOneRow,
-    value => {
-      isOnlyShowOneRow.value = value || false
+    () => [props.onlyShowOneRow, collapsed.value],
+    ([onlyShowOneRow, collapsedValue]) => {
+      isOnlyShowOneRow.value = collapsedValue && (onlyShowOneRow || false)
     }
   )
 
@@ -206,7 +216,7 @@ export function useForm<T extends Record<string, any> = any>(
   // 展开收起切换
   const unfoldToggle = () => {
     collapsed.value = !collapsed.value
-    isOnlyShowOneRow.value = collapsed.value
+    isOnlyShowOneRow.value = collapsed.value && (props.onlyShowOneRow || false)
   }
 
   // 获取组件属性

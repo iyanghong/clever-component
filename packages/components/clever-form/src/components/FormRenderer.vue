@@ -1,20 +1,47 @@
 <template>
   <div class="form-renderer">
-    <template v-for="schema in schemas" :key="getSchemaKey(schema)">
-      <!-- 分组类型 -->
-      <template v-if="isFormGroupSchema(schema)">
-        <div class="form-group" :style="schema.style" :class="schema.className">
-          <h3 v-if="schema.title" class="form-group-title">{{ schema.title }}</h3>
-          <p v-if="schema.description" class="form-group-description">{{ schema.description }}</p>
-          <NGrid v-bind="getGridConfig()">
-            <template v-for="fieldSchema in schema.fields" :key="getSchemaKey(fieldSchema)">
-              <NGi v-if="ifShowFormItem(fieldSchema)" v-bind="getComponentProps(fieldSchema, 'gi')">
-                <FormField :schema="fieldSchema" :form-model="formModel" :methods="methods" />
-              </NGi>
+    <!-- 单行显示模式 -->
+    <template v-if="isOnlyShowOneRow">
+      <div class="one-row-layout">
+        <div class="form-fields">
+          <template v-for="schema in schemas" :key="getSchemaKey(schema)">
+            <!-- 分组类型 -->
+            <template v-if="isFormGroupSchema(schema)">
+              <template v-for="fieldSchema in schema.fields" :key="getSchemaKey(fieldSchema)">
+                <div v-if="ifShowFormItem(fieldSchema)" class="field-item">
+                  <FormField :schema="fieldSchema" :form-model="formModel" :methods="methods" />
+                </div>
+              </template>
             </template>
-          </NGrid>
+            
+            <!-- 字段类型 -->
+            <template v-else-if="!isFormContainerSchema(schema)">
+              <div v-if="ifShowFormItem(schema)" class="field-item">
+                <FormField :schema="schema" :form-model="formModel" :methods="methods" />
+              </div>
+            </template>
+          </template>
         </div>
-      </template>
+      </div>
+    </template>
+    
+    <!-- 正常显示模式 -->
+    <template v-else>
+      <template v-for="schema in schemas" :key="getSchemaKey(schema)">
+        <!-- 分组类型 -->
+        <template v-if="isFormGroupSchema(schema)">
+          <div class="form-group" :style="schema.style" :class="schema.className">
+            <h3 v-if="schema.title" class="form-group-title">{{ schema.title }}</h3>
+            <p v-if="schema.description" class="form-group-description">{{ schema.description }}</p>
+            <NGrid v-bind="getGridConfig()">
+              <template v-for="fieldSchema in schema.fields" :key="getSchemaKey(fieldSchema)">
+                <NGi v-if="ifShowFormItem(fieldSchema)" v-bind="getComponentProps(fieldSchema, 'gi')">
+                  <FormField :schema="fieldSchema" :form-model="formModel" :methods="methods" />
+                </NGi>
+              </template>
+            </NGrid>
+          </div>
+        </template>
       
       <!-- 容器类型 -->
       <template v-else-if="schema.type === 'container'">
@@ -31,6 +58,7 @@
               :form-model="formModel"
               :methods="methods"
               :layout-config="layoutConfig"
+              :is-only-show-one-row="isOnlyShowOneRow"
             />
           </NTabPane>
         </NTabs>
@@ -48,6 +76,7 @@
               :form-model="formModel"
               :methods="methods"
               :layout-config="layoutConfig"
+              :is-only-show-one-row="isOnlyShowOneRow"
             />
           </NCollapseItem>
         </NCollapse>
@@ -64,6 +93,7 @@
               :form-model="formModel"
               :methods="methods"
               :layout-config="layoutConfig"
+              :is-only-show-one-row="isOnlyShowOneRow"
             />
           </template>
         </NGrid>
@@ -80,6 +110,7 @@
               :form-model="formModel"
               :methods="methods"
               :layout-config="layoutConfig"
+              :is-only-show-one-row="isOnlyShowOneRow"
             />
           </template>
         </div>
@@ -91,6 +122,7 @@
           <FormField :schema="schema" :form-model="formModel" :methods="methods" />
         </div>
         <FormField v-else-if="ifShowFormItem(schema)" :schema="schema" :form-model="formModel" :methods="methods" />
+      </template>
       </template>
     </template>
   </div>
@@ -108,10 +140,12 @@ interface Props {
   methods: CleverFormMethods
   layoutConfig?: LayoutConfig
   isFlex?: boolean
+  isOnlyShowOneRow?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isFlex: false
+  isFlex: false,
+  isOnlyShowOneRow: false
 })
 
 // 判断是否为分组schema
@@ -229,5 +263,26 @@ const ifShowFormItem = (schema: FormSchema) => {
   margin: 0 0 16px 0;
   font-size: 14px;
   color: #666;
+}
+
+/* 单行显示模式样式 */
+.one-row-layout {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-fields {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  align-items: flex-end;
+}
+
+.field-item {
+  flex: 1;
+  min-width: 200px;
 }
 </style>

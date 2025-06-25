@@ -1,7 +1,36 @@
 <template>
   <div class="layout-renderer">
+    <!-- Mixed Layout -->
+    <template v-if="layoutMode === 'mixed'">
+      <!-- 使用 FormRenderer 来处理混合布局 -->
+      <FormRenderer
+        :schemas="schemas"
+        :form-model="formModel"
+        :methods="{
+          getFormItemProps: getFormItemPropsMethod,
+          getComponentProps: getComponentPropsMethod,
+          getFormComponent: getFormComponent,
+          setFieldValue: setFieldValue,
+          handleFieldChange: handleFieldChangeMethod
+        }"
+        :layout-config="layoutConfig"
+        :is-only-show-one-row="isOnlyShowOneRow"
+      />
+      
+      <!-- 操作按钮组 -->
+      <ActionButtons
+        v-if="showActionButtonGroup"
+        v-bind="actionButtonProps"
+        container-class="clever-form-action"
+        :container-style="{ marginTop: '16px' }"
+        @reset="$emit('reset')"
+        @submit="$emit('submit')"
+        @toggle="$emit('unfold-toggle')"
+      />
+    </template>
+
     <!-- Grid Layout -->
-    <template v-if="layoutMode === 'grid'">
+    <template v-else-if="layoutMode === 'grid'">
       <!-- 只显示一行模式 -->
       <template v-if="isOnlyShowOneRow">
         <div class="one-row-layout">
@@ -29,15 +58,7 @@
 
           <!-- 操作按钮区域 -->
           <ActionButtons
-            :show-action-button-group="showActionButtonGroup"
-            :show-reset-button="showResetButton"
-            :show-submit-button="showSubmitButton"
-            :show-advanced-button="showAdvancedButton"
-            :reset-button-text="resetButtonText"
-            :submit-button-text="submitButtonText"
-            :reset-button-options="getResetBtnOptionsMethod?.()"
-            :submit-button-options="getSubmitBtnOptionsMethod?.()"
-            :collapsed="collapsed"
+            v-bind="actionButtonProps"
             @reset="$emit('reset')"
             @submit="$emit('submit')"
             @toggle="$emit('unfold-toggle')"
@@ -107,7 +128,7 @@
             v-bind="actionButtonProps"
             @reset="$emit('reset')"
             @submit="$emit('submit')"
-            @toggle="$emit('toggle')"
+            @toggle="$emit('unfold-toggle')"
           />
         </div>
       </template>
@@ -141,15 +162,7 @@
 
         <!-- 操作按钮组 -->
         <ActionButtons
-          :show-action-button-group="showActionButtonGroup"
-          :show-reset-button="showResetButton"
-          :show-submit-button="showSubmitButton"
-          :show-advanced-button="showAdvancedButton"
-          :reset-button-text="resetButtonText"
-          :submit-button-text="submitButtonText"
-          :reset-button-options="getResetBtnOptions?.()"
-          :submit-button-options="getSubmitBtnOptions?.()"
-          :collapsed="collapsed"
+          v-bind="actionButtonProps"
           container-class="clever-form-action"
           :container-style="{ marginTop: '16px' }"
           @reset="$emit('reset')"
@@ -360,8 +373,9 @@ import {
   NSpace
 } from 'naive-ui'
 import FormFieldRenderer from './FormFieldRenderer.vue'
+import FormRenderer from './FormRenderer.vue'
 import ActionButtons from './ActionButtons.vue'
-import type { FormFieldSchema, CleverFormMethods } from '../types/form'
+import type { FormFieldSchema, CleverFormMethods, LayoutConfig } from '../types/form'
 import type { ButtonProps } from 'naive-ui'
 
 import type { UseFormReturn, LayoutRendererFormProps } from '../types/use-form'
@@ -370,6 +384,7 @@ interface Props {
   layoutMode: 'grid' | 'flex' | 'tabs' | 'accordion' | 'mixed'
   schemas: FormFieldSchema[]
   formModel: Record<string, any>
+  layoutConfig?: LayoutConfig
   isOnlyShowOneRow?: boolean
   showActionButtonGroup?: boolean
   showResetButton?: boolean
@@ -399,6 +414,8 @@ interface Props {
   ) => void
   getFlexItemStyle?: (schema: FormFieldSchema) => Record<string, any>
   getFlexStyle?: () => Record<string, any>
+  getFormComponent?: (schema: FormFieldSchema) => any
+  setFieldValue?: (field: string, value: any) => void
 }
 
 const props = defineProps<Props>()
@@ -450,6 +467,14 @@ const getFlexStyleMethod = computed(() => {
   return props.formMethods?.getFlexStyle || props.getFlexStyle
 })
 
+const getFormComponent = computed(() => {
+  return props.formMethods?.getFormComponent || props.getFormComponent
+})
+
+const setFieldValue = computed(() => {
+  return props.formMethods?.setFieldValue || props.setFieldValue
+})
+
 // 网格属性
 const gridProps = computed(() => {
   return getGridMethod.value?.()
@@ -470,8 +495,8 @@ const actionButtonProps = computed(() => {
     resetButtonText: props.resetButtonText,
     submitButtonText: props.submitButtonText,
     collapsed: props.collapsed,
-    getResetBtnOptions: getResetBtnOptionsMethod.value,
-    getSubmitBtnOptions: getSubmitBtnOptionsMethod.value
+    resetButtonOptions: getResetBtnOptionsMethod.value?.(),
+    submitButtonOptions: getSubmitBtnOptionsMethod.value?.()
   }
 })
 
@@ -489,7 +514,7 @@ const getGridItemProps = (schema: FormFieldSchema) => {
 <style scoped>
 .one-row-layout {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   width: 100%;
   gap: 16px;
 }
@@ -498,7 +523,7 @@ const getGridItemProps = (schema: FormFieldSchema) => {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 16px;
 }
 
