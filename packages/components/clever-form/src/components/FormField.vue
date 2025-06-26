@@ -135,12 +135,13 @@ import {
   NTooltip,
   NIcon
 } from 'naive-ui'
-import { FormSchema, CleverFormMethods, FormFieldSchema } from '../types/form'
+import { FormSchema, FormFieldSchema } from '../types/form'
+import type { FormMethods } from '../types/core'
 
 interface Props {
   schema: FormFieldSchema
   formModel: Record<string, any>
-  methods: CleverFormMethods
+  methods: FormMethods
 }
 
 const props = defineProps<Props>()

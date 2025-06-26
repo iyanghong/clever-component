@@ -93,7 +93,8 @@ const collapsed = ref(false)
 const activeKey = computed(() => {
   const path = route.path
   if (path === '/') return 'home'
-  return path.substring(1) // 移除开头的 '/'
+  // 移除开头的 '/'
+  return path.substring(1)
 })
 
 // 菜单选项
@@ -104,36 +105,110 @@ const menuOptions: MenuOption[] = [
     icon: () => h(HomeOutline)
   },
   {
-    label: '高级组件',
-    key: 'advanced',
+    label: '组件概览',
+    key: 'overview',
+    icon: () => h(GridOutline)
+  },
+  {
+    label: 'CleverForm 表单',
+    key: 'form',
+    icon: () => h(DocumentTextOutline),
+    children: [
+      {
+        label: '组件概览',
+        key: 'form'
+      },
+      {
+        label: '基础用法',
+        key: 'form/basic'
+      },
+      {
+        label: '表单验证',
+        key: 'form/validation'
+      },
+      {
+        label: '动态表单',
+        key: 'form/dynamic'
+      },
+      {
+        label: '表单联动',
+        key: 'form/linkage'
+      },
+      {
+        label: '分组表单',
+        key: 'form/grouped'
+      },
+      {
+        label: '复杂布局',
+        key: 'form/layout'
+      },
+      {
+        label: '混合嵌套布局',
+        key: 'form/nested-mixed'
+      },
+      {
+        label: '自定义组件',
+        key: 'form/custom'
+      },
+      {
+        label: 'API配置',
+        key: 'form/api-config'
+      },
+      {
+        label: '单行显示',
+        key: 'form/one-row'
+      },
+      {
+        label: 'API文档',
+        key: 'form/api-doc'
+      }
+    ]
+  },
+  {
+    label: 'CleverTable 表格',
+    key: 'table',
     icon: () => h(GridOutline),
     children: [
       {
-        label: 'CleverForm 表单',
-        key: 'clever-form',
-        icon: () => h(DocumentTextOutline)
+        label: '组件概览',
+        key: 'table'
       },
+      {
+        label: '基础表格',
+        key: 'table/basic'
+      },
+      {
+        label: '高级功能',
+        key: 'table/advanced'
+      },
+      {
+        label: 'CRUD操作',
+        key: 'table/crud'
+      },
+      {
+        label: 'CRUD组件概览',
+        key: 'table/crud-overview'
+      }
+    ]
+  },
+  {
+    label: 'CleverPopup 弹窗',
+    key: 'popup',
+    icon: () => h(LayersOutline)
+  },
+  {
+    label: '工具类',
+    key: 'tools',
+    icon: () => h(DocumentTextOutline),
+    children: [
       {
         label: 'Schema辅助工具',
-        key: 'schema-helpers',
-        icon: () => h(DocumentTextOutline)
+        key: 'tools/schema-helpers'
       },
       {
-        label: 'CleverPopup 弹窗',
-        key: 'clever-popup',
-        icon: () => h(LayersOutline)
-      },
-      {
-        label: 'CleverTable 表格',
-        key: 'clever-table',
-        icon: () => h(GridOutline)
-      },
-      {
-        label: 'CleverTable CRUD',
-        key: 'clever-table-crud',
-        icon: () => h(GridOutline)
-      },
-
+        label: '表单Schema工具',
+        key: 'tools/form-schema-helpers'
+      }
     ]
   }
 ]

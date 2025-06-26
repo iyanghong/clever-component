@@ -6,16 +6,14 @@
       <FormRenderer
         :schemas="schemas"
         :form-model="formModel"
-        :form-methods="{
+        :methods="{
           getFormItemProps: getFormItemPropsMethod,
           getComponentProps: getComponentPropsMethod,
           getFormComponent: getFormComponent,
           setFieldValue: setFieldValue,
-          handleFieldChange: handleFieldChangeMethod
+          handleFieldChange: handleFieldChangeMethod,
+          ifShowFormItem: ifShowFormItemMethod
         }"
-        :get-form-item-props="getFormItemPropsMethod"
-        :get-component-props="getComponentPropsMethod"
-        :handle-field-change="handleFieldChangeMethod"
         :layout-config="layoutConfig"
         :is-only-show-one-row="isOnlyShowOneRow"
         :is-mixed-layout="true"

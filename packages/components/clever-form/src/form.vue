@@ -164,7 +164,10 @@ const formMethods = {
   getGroupedSchemas,
   ifShowFormItem,
   getFlexItemStyle,
-  handleFieldChange
+  getFlexStyle,
+  handleFieldChange,
+  getFormComponent,
+  setFieldValue
 }
 
 defineExpose(methods)

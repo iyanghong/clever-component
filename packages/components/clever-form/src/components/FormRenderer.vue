@@ -1,7 +1,55 @@
 <template>
   <div class="form-renderer">
+    <!-- 混合布局模式 - 最顶层套一层Grid布局 -->
+    <template v-if="isMixedLayout">
+      <NGrid v-bind="getTopLevelGridConfig()">
+        <template v-for="schema in schemas" :key="getSchemaKey(schema)">
+          <!-- 容器类型 -->
+          <template v-if="isFormContainerSchema(schema)">
+            <NGi v-bind="getContainerGridProps(schema)">
+              <div class="container-wrapper" :style="schema.style" :class="schema.className">
+                <h3 v-if="schema.title" class="container-title">{{ schema.title }}</h3>
+                <p v-if="schema.description" class="container-description">{{ schema.description }}</p>
+                <ContainerRenderer
+                  :schema="schema"
+                  :form-model="formModel"
+                  :methods="methods"
+                  :layout-config="layoutConfig"
+                  :is-only-show-one-row="isOnlyShowOneRow"
+                />
+              </div>
+            </NGi>
+          </template>
+          
+          <!-- 分组类型 -->
+          <template v-else-if="isFormGroupSchema(schema)">
+            <NGi v-bind="getGroupGridProps(schema)">
+              <div class="form-group" :style="schema.style" :class="schema.className">
+                <h3 v-if="schema.title" class="form-group-title">{{ schema.title }}</h3>
+                <p v-if="schema.description" class="form-group-description">{{ schema.description }}</p>
+                <NGrid v-bind="getGridConfig()">
+                  <template v-for="fieldSchema in schema.fields" :key="getSchemaKey(fieldSchema)">
+                    <NGi v-if="ifShowFormItem(fieldSchema)" v-bind="getComponentProps(fieldSchema, 'gi')">
+                      <FormField :schema="fieldSchema" :form-model="formModel" :methods="methods" />
+                    </NGi>
+                  </template>
+                </NGrid>
+              </div>
+            </NGi>
+          </template>
+          
+          <!-- 字段类型 -->
+          <template v-else>
+            <NGi v-if="ifShowFormItem(schema)" v-bind="getFieldGridProps(schema)">
+              <FormField :schema="schema" :form-model="formModel" :methods="methods" />
+            </NGi>
+          </template>
+        </template>
+      </NGrid>
+    </template>
+    
     <!-- 单行显示模式 -->
-    <template v-if="isOnlyShowOneRow">
+    <template v-else-if="isOnlyShowOneRow">
       <div class="one-row-layout">
         <div class="form-fields">
           <template v-for="schema in schemas" :key="getSchemaKey(schema)">
@@ -44,76 +92,14 @@
         </template>
       
       <!-- 容器类型 -->
-      <template v-else-if="schema.type === 'container'">
-        <!-- Tabs 容器 -->
-        <NTabs v-if="schema.containerType === 'tabs'" v-bind="schema.config || {}">
-          <NTabPane 
-            v-for="(child, index) in schema.children" 
-            :key="index"
-            :name="child.name || `tab-${index}`"
-            :tab="child.title || child.label || `Tab ${index + 1}`"
-          >
-            <FormRenderer 
-              :schemas="Array.isArray(child.children) ? child.children : [child]"
-              :form-model="formModel"
-              :methods="methods"
-              :layout-config="layoutConfig"
-              :is-only-show-one-row="isOnlyShowOneRow"
-            />
-          </NTabPane>
-        </NTabs>
-        
-        <!-- Accordion 容器 -->
-        <NCollapse v-else-if="schema.containerType === 'accordion'" v-bind="schema.config || {}">
-          <NCollapseItem 
-            v-for="(child, index) in schema.children"
-            :key="index"
-            :title="child.title || child.label || `Section ${index + 1}`"
-            :name="child.name || `section-${index}`"
-          >
-            <FormRenderer 
-              :schemas="Array.isArray(child.children) ? child.children : [child]"
-              :form-model="formModel"
-              :methods="methods"
-              :layout-config="layoutConfig"
-              :is-only-show-one-row="isOnlyShowOneRow"
-            />
-          </NCollapseItem>
-        </NCollapse>
-        
-        <!-- Grid 容器 -->
-        <NGrid v-else-if="schema.containerType === 'grid'" v-bind="getGridConfig(schema.config)">
-          <template v-for="childSchema in schema.children" :key="getSchemaKey(childSchema)">
-            <NGi v-if="childSchema.type !== 'container' && ifShowFormItem(childSchema)" v-bind="getComponentProps(childSchema, 'gi')">
-              <FormField :schema="childSchema" :form-model="formModel" :methods="methods" />
-            </NGi>
-            <FormRenderer 
-              v-else-if="childSchema.type === 'container'"
-              :schemas="[childSchema]"
-              :form-model="formModel"
-              :methods="methods"
-              :layout-config="layoutConfig"
-              :is-only-show-one-row="isOnlyShowOneRow"
-            />
-          </template>
-        </NGrid>
-        
-        <!-- Flex 容器 -->
-        <div v-else-if="schema.containerType === 'flex'" :style="getFlexStyle(schema.config)">
-          <template v-for="childSchema in schema.children" :key="getSchemaKey(childSchema)">
-            <div v-if="childSchema.type !== 'container' && ifShowFormItem(childSchema)" :style="getFlexItemStyle(childSchema)">
-              <FormField :schema="childSchema" :form-model="formModel" :methods="methods" />
-            </div>
-            <FormRenderer 
-              v-else-if="childSchema.type === 'container'"
-              :schemas="[childSchema]"
-              :form-model="formModel"
-              :methods="methods"
-              :layout-config="layoutConfig"
-              :is-only-show-one-row="isOnlyShowOneRow"
-            />
-          </template>
-        </div>
+      <template v-else-if="isFormContainerSchema(schema)">
+        <ContainerRenderer
+          :schema="schema"
+          :form-model="formModel"
+          :methods="methods"
+          :layout-config="layoutConfig"
+          :is-only-show-one-row="isOnlyShowOneRow"
+        />
       </template>
       
       <!-- 字段类型 -->
@@ -132,6 +118,7 @@
 import { computed } from 'vue'
 import { NTabs, NTabPane, NCollapse, NCollapseItem, NGrid, NGi } from 'naive-ui'
 import FormField from './FormField.vue'
+import ContainerRenderer from './ContainerRenderer.vue'
 import type { FormSchema, FormFieldSchema, FormGroupSchema, FormContainerSchema, CleverFormMethods, LayoutConfig } from '../types/form'
 
 interface Props {
@@ -141,11 +128,13 @@ interface Props {
   layoutConfig?: LayoutConfig
   isFlex?: boolean
   isOnlyShowOneRow?: boolean
+  isMixedLayout?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isFlex: false,
-  isOnlyShowOneRow: false
+  isOnlyShowOneRow: false,
+  isMixedLayout: false
 })
 
 // 判断是否为分组schema
@@ -223,6 +212,29 @@ const isFormContainerSchema = (schema: FormSchema): schema is FormContainerSchem
   return 'type' in schema && schema.type === 'container'
 }
 
+// 判断是否为混合布局模式
+const isMixedLayout = computed(() => props.isMixedLayout)
+
+// 获取顶层Grid配置
+const getTopLevelGridConfig = () => {
+  return props.layoutConfig?.topLevelGrid || getGridConfig()
+}
+
+// 获取容器Grid属性
+const getContainerGridProps = (schema: FormContainerSchema) => {
+  return schema.gridProps || { span: 1 }
+}
+
+// 获取分组Grid属性
+const getGroupGridProps = (schema: FormGroupSchema) => {
+  return schema.giProps || { span: 1 }
+}
+
+// 获取字段Grid属性
+const getFieldGridProps = (schema: FormSchema) => {
+  return getComponentProps(schema, 'gi')
+}
+
 // 判断是否显示表单项
 const ifShowFormItem = (schema: FormSchema) => {
   if (!schema.ifShow) {
@@ -284,5 +296,23 @@ const ifShowFormItem = (schema: FormSchema) => {
 .field-item {
   flex: 1;
   min-width: 200px;
+}
+
+/* 容器样式 */
+.container-wrapper {
+  margin-bottom: 24px;
+}
+
+.container-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.container-description {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #666;
 }
 </style>

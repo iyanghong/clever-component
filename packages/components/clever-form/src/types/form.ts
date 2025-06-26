@@ -262,69 +262,48 @@ export type UseFormReturnType = [RegisterFn, FormActionType]
 
 // 布局配置类型
 export interface LayoutConfig {
-  /** 网格布局配置 */
-  grid?: {
-    /** 列数配置 */
-    cols?: string | number
-    /** 行间距 */
+  // 混合布局顶层Grid配置
+  topLevelGrid?: {
+    cols?: number
     xGap?: number
-    /** 列间距 */
     yGap?: number
-    /** 响应式断点 */
-    responsive?: boolean
+    responsive?: 'self' | 'screen'
   }
-
-  /** Flex布局配置 */
+  // Grid 布局配置
+  grid?: {
+    cols?: number
+    xGap?: number
+    yGap?: number
+    responsive?: 'self' | 'screen'
+    collapsed?: boolean
+    collapsedRows?: number
+  }
+  // Flex 布局配置
   flex?: {
-    /** 主轴方向 */
-    direction?: 'row' | 'column'
-    /** 换行方式 */
+    direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse'
     wrap?: 'nowrap' | 'wrap' | 'wrap-reverse'
-    /** 主轴对齐 */
-    justify?:
-      | 'flex-start'
-      | 'flex-end'
-      | 'center'
-      | 'space-between'
-      | 'space-around'
-      | 'space-evenly'
-    /** 交叉轴对齐 */
-    align?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'baseline'
-    /** 间距 */
-    gap?: number
+    justify?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly'
+    align?: 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch'
+    gap?: string | number
   }
-
-  /** 标签页布局配置 */
+  // Tabs 布局配置
   tabs?: {
-    /** 标签页位置 */
     placement?: 'top' | 'right' | 'bottom' | 'left'
-    /** 标签页类型 */
-    type?: 'line' | 'card' | 'segment'
-    /** 是否可关闭 */
+    type?: 'line' | 'card' | 'bar' | 'segment'
     closable?: boolean
-    /** 是否可添加 */
     addable?: boolean
   }
-
-  /** 手风琴布局配置 */
+  // Accordion 布局配置
   accordion?: {
-    /** 是否手风琴模式 */
     accordion?: boolean
-    /** 默认展开的面板 */
     defaultExpandedNames?: string[]
-    /** 展开图标位置 */
     arrowPlacement?: 'left' | 'right'
   }
-
-  /** 卡片布局配置 */
+  // Card 布局配置
   card?: {
-    /** 卡片标题 */
     title?: string
-    /** 是否有边框 */
     bordered?: boolean
-    /** 卡片大小 */
     size?: 'small' | 'medium' | 'large'
-    /** 是否可折叠 */
     collapsible?: boolean
   }
 }
