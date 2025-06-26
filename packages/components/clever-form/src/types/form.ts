@@ -110,6 +110,8 @@ export interface FormFieldSchema<T extends Record<string, any> = any> {
 }
 
 export interface FormGroupSchema<T extends Record<string, any> = any> {
+  /** 类型标识 */
+  type: 'group'
   /** 分组标题 */
   title: string
   /** 是否可以收缩 */
@@ -124,6 +126,8 @@ export interface FormGroupSchema<T extends Record<string, any> = any> {
   style?: Record<string, any>
   /** 分组类名 */
   className?: string
+  /** 显示模式 */
+  showMode?: 'edit' | 'detail' | 'disable' | 'hidden'
   /** 条件显示函数 */
   ifShow?: (formModel: T, methods: CleverFormMethods<T>) => boolean
 }
@@ -140,6 +144,10 @@ export interface FormContainerSchema<T extends Record<string, any> = any> {
   title?: string
   /** 容器描述 */
   description?: string
+  /** 是否可折叠 */
+  collapsible?: boolean
+  /** 是否默认展开 */
+  collapsed?: boolean
   /** 子元素 */
   children: (FormSchema<T> | FormContainerSchema<T>)[]
   /** 容器配置 */
@@ -148,6 +156,8 @@ export interface FormContainerSchema<T extends Record<string, any> = any> {
   style?: Record<string, any>
   /** 容器类名 */
   className?: string
+  /** 显示模式 */
+  showMode?: 'edit' | 'detail' | 'disable' | 'hidden'
   /** Grid布局属性（用于混合布局中的Grid项配置） */
   gridProps?: Record<string, any>
   /** 条件显示函数 */
@@ -271,7 +281,7 @@ export interface LayoutConfig {
   }
   // Grid 布局配置
   grid?: {
-    cols?: number
+    cols?: number | string
     xGap?: number
     yGap?: number
     responsive?: 'self' | 'screen'
@@ -335,7 +345,7 @@ export function getDefaultCleverFormProps(): CleverFormProps {
         cols: '1 s:1 m:2 l:3 xl:4 2xl:4',
         xGap: 16,
         yGap: 16,
-        responsive: true
+        responsive: 'screen'
       }
     }
   }

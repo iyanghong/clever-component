@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash-es'
 import type { Ref } from 'vue'
 import { computed, ref, watch } from 'vue'
-import { isFunction, isObject } from '../../../../utils/is'
+import { isArray, isFunction, isObject } from '../../../../utils/is'
 import type {
   CleverFormMethods,
   CleverFormProps,
@@ -38,7 +38,7 @@ export function useForm<T extends Record<string, any> = any>(
   watch(
     () => [props.onlyShowOneRow, collapsed.value],
     ([onlyShowOneRow, collapsedValue]) => {
-      isOnlyShowOneRow.value = collapsedValue && (onlyShowOneRow || false)
+      isOnlyShowOneRow.value = (collapsedValue && (onlyShowOneRow || false)) || false
     }
   )
 
@@ -298,7 +298,7 @@ export function useForm<T extends Record<string, any> = any>(
         // 如果是FormFieldSchema（有field属性）
         if ('field' in schema) {
           const fieldSchema = schema as FormFieldSchema<T>
-          if (fieldSchema.rules && fieldSchema.rules.length > 0) {
+          if (fieldSchema.rules && Array.isArray(fieldSchema.rules) && fieldSchema.rules.length > 0) {
             rules[fieldSchema.field as string] = fieldSchema.rules
           }
         }

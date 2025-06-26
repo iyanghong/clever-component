@@ -72,7 +72,7 @@ export interface UseFormReturn<T extends Record<string, any> = any> {
   /** 重置表单 */
   handleReset: () => void
   /** 提交表单 */
-  handleSubmit: () => Promise<void>
+  handleSubmit: () => Promise<any>
   /** 切换折叠状态 */
   unfoldToggle: () => void
 
