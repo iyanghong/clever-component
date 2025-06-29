@@ -25,7 +25,7 @@
       
       <!-- 容器组件 -->
       <ContainerRenderer
-        v-else-if="item.type === 'container'"
+        v-else
         :config="item"
         :disabled="disabled || item.disabled"
         :readonly="readonly || item.readonly"

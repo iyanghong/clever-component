@@ -19,7 +19,7 @@
         class="card-container__item"
       >
         <!-- 字段渲染 -->
-        <FieldRenderer
+        <CleverFormItem
           v-if="child.type === 'field'"
           :config="child"
           :disabled="disabled"
@@ -59,8 +59,9 @@ import { NCard } from 'naive-ui'
 import type { CardContainerConfig } from '../../types/layout'
 import type { FieldConfig, ContainerConfig } from '../../types'
 import type { ValidationResult } from '../../types/validation'
-import FieldRenderer from '../field-components/FieldRenderer.vue'
+import CleverFormItem from '../CleverFormItem.vue'
 import ContainerRenderer from './ContainerRenderer.vue'
+import { normalizeChildren } from '@/components/clever-form'
 
 // Props定义
 interface Props {
@@ -90,25 +91,10 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-// 标准化子项配置
-const normalizedChildren = computed(() => {
-  return props.config.children.map((child, index) => {
-    if ('field' in child) {
-      return {
-        ...child,
-        type: 'field' as const,
-        id: child.field || `field-${index}`
-      }
-    } else {
-      return {
-        ...child,
-        type: 'container' as const,
-        id: child.title || `container-${index}`
-      }
-    }
-  })
-})
 
+const normalizedChildren = computed(() => {
+  return normalizeChildren(props.config.children || [])
+})
 // 事件处理
 const handleFieldChange = (field: string, value: any, oldValue: any) => {
   emit('field:change', field, value, oldValue)

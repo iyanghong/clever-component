@@ -23,7 +23,7 @@
             class="group-container__item"
           >
             <!-- 字段渲染 -->
-            <FieldRenderer
+            <CleverFormItem
               v-if="child.type === 'field'"
               :config="child"
               :disabled="disabled"
@@ -78,7 +78,7 @@
           class="group-container__item"
         >
           <!-- 字段渲染 -->
-          <FieldRenderer
+          <CleverFormItem
             v-if="child.type === 'field'"
             :config="child"
             :disabled="disabled"
@@ -114,8 +114,9 @@ import { NCollapse, NCollapseItem } from 'naive-ui'
 import type { GroupContainerConfig } from '../../types/layout'
 
 import type { ValidationResult } from '../../types/validation'
-import FieldRenderer from '../field-components/FieldRenderer.vue'
+import CleverFormItem from '../CleverFormItem.vue'
 import ContainerRenderer from './ContainerRenderer.vue'
+import { normalizeChildren } from '@/components/clever-form'
 
 // Props定义
 interface Props {
@@ -153,23 +154,8 @@ const expandedValue = ref<string[]>(
   props.config.props?.defaultExpanded !== false ? [groupKey.value] : []
 )
 
-// 标准化子项配置
 const normalizedChildren = computed(() => {
-  return props.config.children.map((child, index) => {
-    if ('field' in child) {
-      return {
-        ...child,
-        type: 'field' as const,
-        id: child.field || `field-${index}`
-      }
-    } else {
-      return {
-        ...child,
-        type: 'container' as const,
-        id: child.title || `container-${index}`
-      }
-    }
-  })
+  return normalizeChildren(props.config.children || [])
 })
 
 // 头部样式

@@ -16,7 +16,7 @@
       <slot :name="name" v-bind="slotProps" />
     </template>
   </component>
-  
+
   <!-- 未知容器类型 -->
   <div v-else class="container-renderer__unknown">
     <slot name="unknown-container" :config="config">
@@ -32,10 +32,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type {
-  ContainerConfig,
-  ValidationResult
-} from '../../types'
+import type { ContainerConfig, ValidationResult } from '../../types'
 import { COMPONENT_NAMES } from '../../constants'
 
 // 导入容器组件
@@ -78,24 +75,24 @@ interface Emits {
   'field:change': [field: string, value: any, oldValue: any]
   'field:focus': [field: string]
   'field:blur': [field: string]
-  'validate': [result: ValidationResult]
+  validate: [result: ValidationResult]
 }
 
 defineEmits<Emits>()
 
 // 容器组件映射
-  const containerComponents = {
-    grid: GridContainer,
-    flex: FlexContainer,
-    tabs: TabsContainer,
-    collapse: CollapseContainer,
-    vertical: VerticalContainer,
-    inline: InlineContainer,
-    group: GroupContainer,
-    card: CardContainer,
-    steps: StepsContainer,
-    custom: CustomContainer
-  } as const
+const containerComponents = {
+  grid: GridContainer,
+  flex: FlexContainer,
+  tabs: TabsContainer,
+  collapse: CollapseContainer,
+  vertical: VerticalContainer,
+  inline: InlineContainer,
+  group: GroupContainer,
+  card: CardContainer,
+  steps: StepsContainer,
+  custom: CustomContainer
+} as const
 
 // 计算当前容器组件
 const containerComponent = computed(() => {
@@ -111,18 +108,18 @@ const containerComponent = computed(() => {
     border: 2px dashed var(--n-border-color);
     border-radius: 6px;
     text-align: center;
-    
+
     &-content {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
     }
-    
+
     &-icon {
       font-size: 24px;
     }
-    
+
     &-text {
       color: var(--n-text-color-3);
       font-size: 14px;

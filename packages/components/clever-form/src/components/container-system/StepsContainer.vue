@@ -34,7 +34,7 @@
           class="steps-container__item"
         >
           <!-- 字段渲染 -->
-          <FieldRenderer
+          <CleverFormItem
             v-if="child.type === 'field'"
             :config="child"
             :disabled="disabled"
@@ -96,7 +96,7 @@ import { NSteps, NStep, NButton, NSpace } from 'naive-ui'
 import type { StepsContainerConfig } from '../../types/layout'
 import type { FieldConfig, ContainerConfig } from '../../types'
 import type { ValidationResult } from '../../types/validation'
-import FieldRenderer from '../field-components/FieldRenderer.vue'
+import CleverFormItem from '../CleverFormItem.vue'
 import ContainerRenderer from './ContainerRenderer.vue'
 
 // Props定义
@@ -147,21 +147,22 @@ const normalizedSteps = computed(() => {
   const steps = props.config.props?.steps || []
   return steps.map((step, index) => {
     const normalizedChildren = step.children.map((child, childIndex) => {
-      if ('field' in child) {
-        return {
-          ...child,
-          type: 'field' as const,
-          id: child.field || `step-${index}-field-${childIndex}`
-        }
-      } else {
+      if ('container' in child) {
         return {
           ...child,
           type: 'container' as const,
           id: child.title || `step-${index}-container-${childIndex}`
         }
+
+      } else {
+        return {
+          ...child,
+          type: 'field' as const,
+          id: child.field || `step-${index}-field-${childIndex}`
+        }
       }
     })
-    
+
     return {
       ...step,
       key: step.title || `step-${index}`,

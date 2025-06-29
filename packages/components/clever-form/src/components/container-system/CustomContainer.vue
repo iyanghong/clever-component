@@ -15,7 +15,7 @@
   >
     <!-- 渲染子项 -->
     <template v-for="(child, index) in config.children" :key="getChildKey(child, index)">
-      <FieldRenderer
+      <CleverFormItem
         v-if="isFieldConfig(child)"
         :config="child"
         :disabled="disabled"
@@ -63,7 +63,7 @@
     <div class="custom-container__content">
       <!-- 渲染子项 -->
       <template v-for="(child, index) in config.children" :key="getChildKey(child, index)">
-        <FieldRenderer
+        <CleverFormItem
           v-if="isFieldConfig(child)"
           :config="child"
           :disabled="disabled"
@@ -99,7 +99,7 @@ import type {
   ValidationResult
 } from '../../types'
 import { COMPONENT_NAMES } from '../../constants'
-import FieldRenderer from '../field-components/FieldRenderer.vue'
+import CleverFormItem from '../CleverFormItem.vue'
 
 // 避免循环引用，使用动态导入
 const ContainerRenderer = defineAsyncComponent(() => import('./ContainerRenderer.vue'))
@@ -160,7 +160,7 @@ const renderContent = computed(() => {
   // 渲染子组件
   const children = props.config.children.map((child, index) => {
     if (isFieldConfig(child)) {
-      return h(FieldRenderer, {
+      return h(CleverFormItem, {
         key: getChildKey(child, index),
         config: child,
         disabled: props.disabled,

@@ -9,17 +9,17 @@
       class="inline-container__item"
     >
       <!-- 字段渲染 -->
-      <FieldRenderer
-        v-if="child.type === 'field'"
-        :config="child"
-        :disabled="disabled"
-        :readonly="readonly"
-        :loading="loading"
-        @field:change="(field, value, oldValue) => handleFieldChange(field, value, oldValue)"
-        @field:focus="(field) => handleFieldFocus(field)"
-        @field:blur="(field) => handleFieldBlur(field)"
-        @validate="(field, result) => handleFieldValidate(field, result)"
-      />
+        <CleverFormItem
+          v-if="child.type === 'field'"
+          :config="child"
+          :disabled="disabled"
+          :readonly="readonly"
+          :loading="loading"
+          @field:change="(field, value, oldValue) => handleFieldChange(field, value, oldValue)"
+          @field:focus="(field) => handleFieldFocus(field)"
+          @field:blur="(field) => handleFieldBlur(field)"
+          @validate="(field, result) => handleFieldValidate(field, result)"
+        />
       
       <!-- 容器渲染 -->
       <ContainerRenderer
@@ -42,8 +42,9 @@ import { computed } from 'vue'
 import type { InlineContainerConfig } from '../../types/layout'
 import type { FieldConfig, ContainerConfig } from '../../types'
 import type { ValidationResult } from '../../types/validation'
-import FieldRenderer from '../field-components/FieldRenderer.vue'
+import CleverFormItem from '../CleverFormItem.vue'
 import ContainerRenderer from './ContainerRenderer.vue'
+import { normalizeChildren } from '@/components/clever-form'
 
 // Props定义
 interface Props {
@@ -73,23 +74,8 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-// 标准化子项配置
 const normalizedChildren = computed(() => {
-  return props.config.children.map((child, index) => {
-    if ('field' in child) {
-      return {
-        ...child,
-        type: 'field' as const,
-        id: child.field || `field-${index}`
-      }
-    } else {
-      return {
-        ...child,
-        type: 'container' as const,
-        id: child.title || `container-${index}`
-      }
-    }
-  })
+  return normalizeChildren(props.config.children || [])
 })
 
 // 容器样式

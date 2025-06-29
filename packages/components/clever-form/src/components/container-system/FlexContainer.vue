@@ -19,7 +19,7 @@
         @validate="handleValidate"
       />
       <ContainerRenderer
-        v-else-if="item.type === 'container'"
+        v-else
         :config="item"
         :disabled="props.disabled"
         :readonly="props.readonly"

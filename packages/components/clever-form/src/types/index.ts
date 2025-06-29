@@ -26,3 +26,6 @@ export * from './events'
 
 // 导出表单相关类型
 export * from './form'
+
+// 导出JSON Schema相关类型
+export * from './schema'

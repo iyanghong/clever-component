@@ -6,23 +6,7 @@
 // 字段渲染器
 export { default as FieldRenderer } from './FieldRenderer.vue'
 
-// 基础输入字段
-export { default as InputField } from './InputField.vue'
-export { default as TextareaField } from './TextareaField.vue'
-export { default as NumberField } from './NumberField.vue'
 
-// 选择字段
-export { default as SelectField } from './SelectField.vue'
-export { default as RadioField } from './RadioField.vue'
-export { default as CheckboxField } from './CheckboxField.vue'
-export { default as SwitchField } from './SwitchField.vue'
-
-// 日期时间字段
-export { default as DateField } from './DateField.vue'
-export { default as TimeField } from './TimeField.vue'
-
-// 文件上传字段
-export { default as UploadField } from './UploadField.vue'
 
 // 字段组件类型映射
 export const FIELD_COMPONENT_MAP = {
