@@ -88,7 +88,7 @@ import {
 } from 'naive-ui'
 
 import CleverSearch from './components/CleverSearch.vue'
-import CleverForm from '../../clever-form/index.vue'
+import CleverForm from '../../clever-form/src/components/CleverForm/index.vue'
 import TableToolbar from './components/TableToolbar.vue'
 import TableActions from './components/TableActions.vue'
 import ColumnSettings from './components/ColumnSettings.vue'

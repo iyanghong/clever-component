@@ -1,30 +1,58 @@
-# CleverForm 组件
+# CleverForm 智能表单组件
 
-> 基于 Vue 3 + TypeScript + Naive UI 的智能表单组件
-
-## 📋 概述
-
-CleverForm 是一个功能强大、高度可配置的表单组件，支持多种布局模式、丰富的字段类型和灵活的验证规则。
+> 基于 Vue 3 + TypeScript + + Naive UI的高性能表单解决方案
 
 ## ✨ 特性
 
-- 🎯 **类型安全** - 完整的 TypeScript 类型支持
-- 🎨 **多种布局** - 支持网格、弹性、内联、垂直布局
-- 🧩 **丰富组件** - 支持所有 Naive UI 表单组件
-- 🔧 **高度可配置** - 灵活的字段配置和表单配置
-- 📱 **响应式设计** - 自适应不同屏幕尺寸
-- 🎭 **插槽支持** - 支持自定义渲染和插槽
-- ⚡ **性能优化** - 按需渲染和懒加载
-- 🔍 **可折叠表单** - 支持字段折叠和展开
+### 🚀 核心特性
+- **JSON Schema 驱动**: 通过单一 JSON 配置实现完整表单功能
+- **容器化架构**: 基于容器概念实现多层级嵌套的灵活布局系统
+- **API 集成**: 内置完整的 CRUD 操作，支持数据生命周期管理
+- **Naive UI 验证**: 完全兼容 Naive UI 的 FormItemRule 验证体系
+- **高性能渲染**: 优化的渲染机制，支持 500+ 字段的大型表单
+- **弹窗集成**: 与 CleverPopup 无缝集成，支持 Modal 和 Drawer 模式
+- **类型安全**: 完整的 TypeScript 类型定义和严格模式检查
+- **状态管理**: 独立的容器状态管理和数据隔离机制
+
+### 📦 丰富组件
+
+#### 🏗️ 容器化布局系统
+- **GridContainer**: 网格布局容器，支持响应式栅格系统
+- **FlexContainer**: 弹性布局容器，支持灵活的弹性布局
+- **TabsContainer**: 标签页布局容器，支持分组展示
+- **GroupContainer**: 分组布局容器，支持可折叠的分组显示
+
+#### 📝 字段组件系统
+- **基础字段**: Input、Number、Textarea、Switch 等基础输入组件
+- **选择字段**: Select、Radio、Checkbox、Cascader 等选择类组件
+- **日期时间**: DatePicker、TimePicker、DateTimePicker 等时间组件
+- **高级字段**: Upload、Rate、Slider、ColorPicker 等高级组件
+
+#### 🔧 核心引擎
+- **ContainerEngine**: 容器化渲染引擎，处理嵌套结构
+- **FieldRenderer**: 字段渲染器，处理数据绑定和验证
+- **ValidationEngine**: 基于 Naive UI 的验证引擎
+- **ApiManager**: API 操作管理器，处理 CRUD 数据流
+
+### 🛡️ 开发保障
+- **类型安全**: 严格的 TypeScript 类型检查和智能提示
+- **Schema 验证**: 完整的 JSON Schema 合法性验证和错误提示
+- **性能优化**: 支持 500+ 字段，首次渲染 < 200ms
+- **测试覆盖**: 核心功能单元测试覆盖率 >= 70%
+- **调试友好**: 详细的错误信息和开发工具支持
+- **文档完整**: 完整的 API 文档和使用示例
 
 ## 📦 安装
 
 ```bash
-npm install @clever-component/form
-# 或
-pnpm add @clever-component/form
-# 或
-yarn add @clever-component/form
+# npm
+npm install @clever-component/clever-form
+
+# yarn
+yarn add @clever-component/clever-form
+
+# pnpm
+pnpm add @clever-component/clever-form
 ```
 
 ## 🚀 快速开始
@@ -35,95 +63,356 @@ yarn add @clever-component/form
 <template>
   <CleverForm
     v-model="formData"
-    :schemas="schemas"
-    :config="config"
+    :schema="formSchema"
     @submit="handleSubmit"
+    @field-change="handleFieldChange"
   />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { CleverForm } from '@clever-component/form'
-import type { FormFieldSchema, FormConfig } from '@clever-component/form'
+import CleverForm from '@clever-component/clever-form'
+import type { FormSchema } from '@clever-component/clever-form'
 
 // 表单数据
+const formData = ref({})
+
+// JSON Schema 配置
+const formSchema: FormSchema = {
+  containers: [
+    {
+      type: 'grid',
+      props: { cols: 2, xGap: 16, yGap: 16 },
+      children: [
+        {
+          field: 'name',
+          label: '姓名',
+          component: 'input',
+          required: true,
+          rules: [
+            { required: true, message: '请输入姓名' },
+            { min: 2, max: 20, message: '姓名长度为2-20个字符' }
+          ],
+          props: {
+            placeholder: '请输入您的姓名'
+          }
+        },
+        {
+          field: 'email',
+          label: '邮箱',
+          component: 'input',
+          required: true,
+          rules: [
+            { required: true, message: '请输入邮箱' },
+            { type: 'email', message: '请输入正确的邮箱格式' }
+          ],
+          props: {
+            placeholder: '请输入邮箱地址'
+          }
+        },
+        {
+          field: 'age',
+          label: '年龄',
+          component: 'number-input',
+          rules: [
+            { type: 'number', min: 1, max: 120, message: '年龄必须在1-120之间' }
+          ],
+          props: {
+            placeholder: '请输入年龄'
+          }
+        },
+        {
+          field: 'gender',
+          label: '性别',
+          component: 'radio-group',
+          required: true,
+          props: {
+            options: [
+              { label: '男', value: 'male' },
+              { label: '女', value: 'female' }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      type: 'group',
+      title: '其他信息',
+      props: { collapsible: true },
+      children: [
+        {
+          field: 'birthday',
+          label: '生日',
+          component: 'date-picker',
+          props: {
+            type: 'date',
+            placeholder: '请选择生日'
+          }
+        },
+        {
+          field: 'interests',
+          label: '兴趣爱好',
+          component: 'checkbox-group',
+          props: {
+            options: [
+              { label: '阅读', value: 'reading' },
+              { label: '运动', value: 'sports' },
+              { label: '音乐', value: 'music' },
+              { label: '旅行', value: 'travel' }
+            ]
+          }
+        },
+        {
+          field: 'agree',
+          label: '同意条款',
+          component: 'switch',
+          required: true,
+          rules: [
+            { 
+              validator: (value) => value === true,
+              message: '请同意用户协议'
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+// 事件处理
+const handleSubmit = (data: any) => {
+  console.log('表单提交数据:', data)
+}
+
+const handleFieldChange = (field: string, value: any) => {
+  console.log(`字段 ${field} 值变更为:`, value)
+}
+</script>
+```
+
+### 多布局嵌套
+
+```vue
+<template>
+  <CleverForm
+    v-model="formData"
+    :schemas="formSchemas"
+    :layout="hybridLayoutConfig"
+  />
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { HybridLayoutConfig, FormSchema } from '@clever-component/clever-form'
+
+const formData = ref({})
+
+// 混合布局配置 - 支持多种布局嵌套
+const hybridLayoutConfig: HybridLayoutConfig = {
+  type: 'hybrid',
+  layouts: [
+    {
+      id: 'basic-info',
+      layout: {
+        type: 'grid',
+        props: { cols: 2, gap: 16 }
+      },
+      fields: ['name', 'email', 'phone'],
+      condition: () => true
+    },
+    {
+      id: 'address-info',
+      layout: {
+        type: 'vertical',
+        props: { gap: 12 }
+      },
+      fields: ['province', 'city', 'address'],
+      condition: (formData) => !!formData.name
+    },
+    {
+      id: 'preferences',
+      layout: {
+        type: 'tabs',
+        props: {
+          tabs: [
+            { key: 'personal', label: '个人偏好', fields: ['interests', 'hobbies'] },
+            { key: 'work', label: '工作信息', fields: ['company', 'position'] }
+          ]
+        }
+      },
+      fields: ['interests', 'hobbies', 'company', 'position'],
+      condition: (formData) => !!formData.email
+    }
+  ]
+}
+
+const formSchemas: FormSchema[] = [
+  // ... 字段配置
+]
+</script>
+```
+
+### 弹窗模式
+
+```vue
+<template>
+  <div>
+    <NButton @click="showFormModal">打开表单弹窗</NButton>
+    <NButton @click="showFormDrawer">打开表单抽屉</NButton>
+    
+    <CleverForm
+      v-model="formData"
+      :schemas="formSchemas"
+      :popup="modalConfig"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
+    />
+    
+    <CleverForm
+      v-model="formData"
+      :schemas="formSchemas"
+      :popup="drawerConfig"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { NButton } from 'naive-ui'
+import type { PopupConfig } from '@clever-component/clever-form'
+
+const formData = ref({})
+
+// 模态框配置
+const modalConfig: PopupConfig = {
+  enabled: false,
+  mode: 'modal',
+  title: '用户信息表单',
+  width: 600,
+  closable: true,
+  maskClosable: false
+}
+
+// 抽屉配置
+const drawerConfig: PopupConfig = {
+  enabled: false,
+  mode: 'drawer',
+  title: '编辑用户信息',
+  width: 480,
+  placement: 'right',
+  closable: true
+}
+
+const showFormModal = () => {
+  modalConfig.enabled = true
+}
+
+const showFormDrawer = () => {
+  drawerConfig.enabled = true
+}
+
+const handleConfirm = () => {
+  console.log('表单确认:', formData.value)
+  modalConfig.enabled = false
+  drawerConfig.enabled = false
+}
+
+const handleCancel = () => {
+  console.log('表单取消')
+  modalConfig.enabled = false
+  drawerConfig.enabled = false
+}
+</script>
+```
+
+### 字段联动
+
+```vue
+<template>
+  <CleverForm
+    v-model="formData"
+    :schemas="dynamicSchemas"
+  />
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import type { FormSchema } from '@clever-component/clever-form'
+
 const formData = ref({
-  name: '',
-  email: '',
-  age: null,
-  gender: null
+  userType: '',
+  company: '',
+  position: '',
+  school: '',
+  major: ''
 })
 
-// 表单字段配置
-const schemas: FormFieldSchema[] = [
-  {
-    field: 'name',
-    label: '姓名',
-    component: 'n-input',
-    componentProps: {
-      placeholder: '请输入姓名'
-    },
-    rules: [
-      { required: true, message: '请输入姓名' }
-    ]
-  },
-  {
-    field: 'email',
-    label: '邮箱',
-    component: 'n-input',
-    componentProps: {
-      placeholder: '请输入邮箱'
-    },
-    rules: [
-      { required: true, message: '请输入邮箱' },
-      { type: 'email', message: '请输入正确的邮箱格式' }
-    ]
-  },
-  {
-    field: 'age',
-    label: '年龄',
-    component: 'n-input-number',
-    componentProps: {
-      placeholder: '请输入年龄',
-      min: 1,
-      max: 120
+// 动态字段配置
+const dynamicSchemas = computed((): FormSchema[] => {
+  const baseSchemas: FormSchema[] = [
+    {
+      field: 'userType',
+      label: '用户类型',
+      component: 'select',
+      required: true,
+      props: {
+        options: [
+          { label: '企业用户', value: 'enterprise' },
+          { label: '学生用户', value: 'student' }
+        ]
+      }
     }
-  },
-  {
-    field: 'gender',
-    label: '性别',
-    component: 'n-radio-group',
-    options: [
-      { label: '男', value: 'male' },
-      { label: '女', value: 'female' }
-    ]
+  ]
+  
+  // 根据用户类型动态添加字段
+  if (formData.value.userType === 'enterprise') {
+    baseSchemas.push(
+      {
+        field: 'company',
+        label: '公司名称',
+        component: 'input',
+        required: true,
+        props: {
+          placeholder: '请输入公司名称'
+        }
+      },
+      {
+        field: 'position',
+        label: '职位',
+        component: 'input',
+        required: true,
+        props: {
+          placeholder: '请输入职位'
+        }
+      }
+    )
+  } else if (formData.value.userType === 'student') {
+    baseSchemas.push(
+      {
+        field: 'school',
+        label: '学校名称',
+        component: 'input',
+        required: true,
+        props: {
+          placeholder: '请输入学校名称'
+        }
+      },
+      {
+        field: 'major',
+        label: '专业',
+        component: 'input',
+        required: true,
+        props: {
+          placeholder: '请输入专业'
+        }
+      }
+    )
   }
-]
-
-// 表单配置
-const config: FormConfig = {
-  layout: {
-    mode: 'grid',
-    grid: {
-      cols: '1 s:1 m:2 l:3 xl:4',
-      xGap: 16,
-      yGap: 16
-    }
-  },
-  actions: {
-    showReset: true,
-    showSubmit: true,
-    submitText: '提交',
-    resetText: '重置'
-  }
-}
-
-// 处理提交
-const handleSubmit = (data: any, isValid: boolean) => {
-  if (isValid) {
-    console.log('表单数据:', data)
-  }
-}
+  
+  return baseSchemas
+})
 </script>
 ```
 
@@ -133,697 +422,294 @@ const handleSubmit = (data: any, isValid: boolean) => {
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `schemas` | `FormFieldSchema[]` | `[]` | 表单字段配置 |
-| `config` | `Partial<FormConfig>` | `{}` | 表单配置 |
-| `modelValue` | `FormModel` | `{}` | 表单数据 |
-| `loading` | `boolean` | `false` | 是否加载中 |
-| `class` | `string \| string[] \| Record<string, boolean>` | - | 容器类名 |
-| `style` | `string \| Record<string, any>` | - | 容器样式 |
+| `modelValue` | `Record<string, any>` | `{}` | 表单数据，支持 v-model |
+| `schemas` | `FormSchema[]` | `[]` | 表单字段配置数组 |
+| `layout` | `LayoutConfig` | - | 布局配置 |
+| `popup` | `PopupConfig` | - | 弹窗配置 |
+| `config` | `FormConfig` | - | 表单全局配置 |
+| `disabled` | `boolean` | `false` | 是否禁用整个表单 |
+| `readonly` | `boolean` | `false` | 是否只读模式 |
 
 ### CleverForm Events
 
 | 事件名 | 参数 | 说明 |
 |--------|------|------|
-| `update:modelValue` | `(value: FormModel)` | 表单数据更新 |
-| `submit` | `(data: FormModel, isValid: boolean)` | 表单提交 |
+| `update:modelValue` | `(value: Record<string, any>)` | 表单数据更新 |
+| `field-change` | `(field: string, value: any)` | 字段值变更 |
+| `validate` | `(result: ValidationResult)` | 表单验证结果 |
+| `submit` | `(data: Record<string, any>)` | 表单提交 |
 | `reset` | `()` | 表单重置 |
-| `fieldChange` | `(field: string, value: any, oldValue: any)` | 字段值变化 |
-| `validate` | `(errors: any[] \| null)` | 表单验证 |
-| `toggle` | `(expanded: boolean)` | 展开/收起切换 |
-| `customAction` | `(action: any, index: number)` | 自定义操作 |
+| `confirm` | `()` | 弹窗确认（仅弹窗模式） |
+| `cancel` | `()` | 弹窗取消（仅弹窗模式） |
 
-### CleverForm Methods
-
-| 方法名 | 参数 | 返回值 | 说明 |
-|--------|------|--------|------|
-| `setFieldValue` | `(field: string, value: any)` | `void` | 设置字段值 |
-| `getFieldValue` | `(field: string)` | `any` | 获取字段值 |
-| `setFormData` | `(data: FormModel)` | `void` | 设置表单数据 |
-| `getFormData` | `()` | `FormModel` | 获取表单数据 |
-| `resetFields` | `()` | `void` | 重置表单 |
-| `clearValidate` | `()` | `void` | 清除验证 |
-| `validate` | `()` | `Promise<{ valid: boolean, errors: any }>` | 验证表单 |
-| `submit` | `()` | `Promise<{ data: FormModel, valid: boolean }>` | 提交表单 |
-
-## 🎨 布局模式
-
-### 网格布局 (Grid)
+### FormSchema 配置
 
 ```typescript
-const config: FormConfig = {
-  layout: {
-    mode: 'grid',
-    grid: {
-      cols: '1 s:1 m:2 l:3 xl:4 2xl:4',
-      xGap: 16,
-      yGap: 16,
-      responsive: true
-    }
-  }
+interface FormSchema {
+  field: string                    // 字段名
+  label?: string                   // 字段标签
+  component: FieldComponentType    // 组件类型
+  props?: Record<string, any>      // 组件属性
+  rules?: ValidationRule[]         // 验证规则
+  defaultValue?: any               // 默认值
+  required?: boolean               // 是否必填
+  disabled?: boolean               // 是否禁用
+  readonly?: boolean               // 是否只读
+  visible?: boolean | ((formData: Record<string, any>) => boolean) // 是否显示
+  dependencies?: string[]          // 依赖字段
+  linkage?: LinkageConfig          // 联动配置
+  layout?: FieldLayoutConfig       // 字段布局配置
+  help?: string                    // 帮助文本
+  placeholder?: string             // 占位符
 }
 ```
 
-### 弹性布局 (Flex)
+### LayoutConfig 配置
 
 ```typescript
-const config: FormConfig = {
-  layout: {
-    mode: 'flex',
-    flex: {
-      direction: 'row',
-      wrap: 'wrap',
-      justify: 'flex-start',
-      align: 'flex-start',
-      gap: '16px'
-    }
-  }
+interface LayoutConfig {
+  type: 'grid' | 'flex' | 'inline' | 'vertical' | 'tabs' | 'accordion' | 'hybrid'
+  props?: Record<string, any>
+  children?: LayoutConfig[]
+  groups?: LayoutGroup[]
+}
+
+// 混合布局配置
+interface HybridLayoutConfig extends LayoutConfig {
+  type: 'hybrid'
+  layouts: {
+    id: string
+    layout: LayoutConfig
+    fields: string[]
+    condition?: (formData: Record<string, any>) => boolean
+  }[]
 }
 ```
 
-### 内联布局 (Inline)
+### PopupConfig 配置
 
 ```typescript
-const config: FormConfig = {
-  layout: {
-    mode: 'inline'
-  }
+interface PopupConfig {
+  enabled: boolean                 // 是否启用弹窗
+  title?: string                   // 弹窗标题
+  width?: number | string          // 弹窗宽度
+  mode?: 'modal' | 'drawer'        // 弹窗模式
+  placement?: 'top' | 'right' | 'bottom' | 'left' // 抽屉位置
+  closable?: boolean               // 是否显示关闭按钮
+  maskClosable?: boolean           // 是否点击遮罩关闭
+  className?: string               // 自定义样式类
+  style?: Record<string, any>      // 自定义样式
 }
 ```
 
-### 垂直布局 (Vertical)
-
-```typescript
-const config: FormConfig = {
-  layout: {
-    mode: 'vertical'
-  }
-}
-```
-
-## 🧩 字段类型
+## 🎨 支持的字段类型
 
 ### 输入类组件
-
-```typescript
-// 文本输入
-{
-  field: 'name',
-  label: '姓名',
-  component: 'n-input',
-  componentProps: {
-    placeholder: '请输入姓名',
-    clearable: true
-  }
-}
-
-// 数字输入
-{
-  field: 'age',
-  label: '年龄',
-  component: 'n-input-number',
-  componentProps: {
-    min: 0,
-    max: 120,
-    step: 1
-  }
-}
-
-// 文本域
-{
-  field: 'description',
-  label: '描述',
-  component: 'n-input',
-  componentProps: {
-    type: 'textarea',
-    rows: 4,
-    placeholder: '请输入描述'
-  }
-}
-```
+- `input` - 文本输入框
+- `number-input` - 数字输入框
+- `textarea` - 文本域
+- `password` - 密码输入框
+- `search` - 搜索框
 
 ### 选择类组件
+- `select` - 下拉选择
+- `radio-group` - 单选框组
+- `checkbox-group` - 复选框组
+- `cascader` - 级联选择
+- `transfer` - 穿梭框
 
-```typescript
-// 下拉选择
-{
-  field: 'city',
-  label: '城市',
-  component: 'n-select',
-  options: [
-    { label: '北京', value: 'beijing' },
-    { label: '上海', value: 'shanghai' },
-    { label: '广州', value: 'guangzhou' }
-  ],
-  componentProps: {
-    placeholder: '请选择城市',
-    clearable: true
-  }
-}
-
-// 单选框组
-{
-  field: 'gender',
-  label: '性别',
-  component: 'n-radio-group',
-  options: [
-    { label: '男', value: 'male' },
-    { label: '女', value: 'female' }
-  ]
-}
-
-// 复选框组
-{
-  field: 'hobbies',
-  label: '爱好',
-  component: 'n-checkbox-group',
-  options: [
-    { label: '读书', value: 'reading' },
-    { label: '运动', value: 'sports' },
-    { label: '音乐', value: 'music' }
-  ]
-}
-```
-
-### 日期时间组件
-
-```typescript
-// 日期选择
-{
-  field: 'birthday',
-  label: '生日',
-  component: 'n-date-picker',
-  componentProps: {
-    type: 'date',
-    placeholder: '请选择生日'
-  }
-}
-
-// 时间选择
-{
-  field: 'time',
-  label: '时间',
-  component: 'n-time-picker',
-  componentProps: {
-    placeholder: '请选择时间'
-  }
-}
-```
+### 日期时间类组件
+- `date-picker` - 日期选择器
+- `time-picker` - 时间选择器
+- `datetime-picker` - 日期时间选择器
+- `date-range-picker` - 日期范围选择器
 
 ### 其他组件
+- `switch` - 开关
+- `slider` - 滑块
+- `rate` - 评分
+- `color-picker` - 颜色选择器
+- `upload` - 文件上传
+
+## 🔧 高级用法
+
+### 自定义字段组件
 
 ```typescript
-// 开关
-{
-  field: 'enabled',
-  label: '启用',
-  component: 'n-switch'
-}
+// 注册自定义组件
+import { registerFieldComponent } from '@clever-component/clever-form'
+import CustomField from './CustomField.vue'
 
-// 滑块
-{
-  field: 'score',
-  label: '评分',
-  component: 'n-slider',
-  componentProps: {
-    min: 0,
-    max: 100,
-    step: 1
-  }
-}
+registerFieldComponent('custom-field', CustomField)
 
-// 评分
-{
-  field: 'rating',
-  label: '评级',
-  component: 'n-rate',
-  componentProps: {
-    allowHalf: true
-  }
-}
-
-// 颜色选择
-{
-  field: 'color',
-  label: '颜色',
-  component: 'n-color-picker'
-}
-
-// 文件上传
-{
-  field: 'files',
-  label: '文件',
-  component: 'n-upload',
-  componentProps: {
-    action: '/api/upload',
-    multiple: true
+// 在 Schema 中使用
+const schema: FormSchema = {
+  field: 'customValue',
+  label: '自定义字段',
+  component: 'custom-field',
+  props: {
+    // 自定义属性
   }
 }
 ```
 
-## 🔧 高级配置
-
-### 字段显示控制
+### 自定义验证规则
 
 ```typescript
-{
-  field: 'email',
-  label: '邮箱',
-  component: 'n-input',
-  // 静态显示控制
-  visible: true,
-  // 动态显示控制
-  visible: (formData) => formData.needEmail,
-  // 禁用控制
-  disabled: false,
-  disabled: (formData) => formData.readonly
-}
-```
-
-### 字段布局配置
-
-```typescript
-{
-  field: 'description',
-  label: '描述',
-  component: 'n-input',
-  // 占满整行
-  fullWidth: true,
-  // 自定义布局
-  layout: {
-    span: 12,
-    offset: 2,
-    responsive: {
-      xs: 24,
-      sm: 12,
-      md: 8,
-      lg: 6
-    }
-  }
-}
-```
-
-### 自定义渲染
-
-```typescript
-// 使用插槽
-{
-  field: 'custom',
-  label: '自定义',
-  slot: true
-}
-
-// 使用渲染函数
-{
-  field: 'custom',
-  label: '自定义',
-  render: (props) => {
-    return h('div', '自定义内容')
-  }
-}
-```
-
-### 表单验证
-
-```typescript
-{
-  field: 'email',
-  label: '邮箱',
-  component: 'n-input',
+const schema: FormSchema = {
+  field: 'username',
+  label: '用户名',
+  component: 'input',
   rules: [
-    { required: true, message: '请输入邮箱' },
-    { type: 'email', message: '请输入正确的邮箱格式' },
     {
-      validator: (rule, value) => {
-        return new Promise((resolve, reject) => {
-          if (value && value.includes('test')) {
-            reject(new Error('邮箱不能包含test'))
-          } else {
-            resolve()
-          }
-        })
+      validator: async (value: string) => {
+        // 异步验证用户名是否存在
+        const exists = await checkUsernameExists(value)
+        return !exists
       },
-      message: '邮箱验证失败'
+      message: '用户名已存在'
     }
   ]
 }
 ```
 
-### 可折叠表单
-
-```typescript
-const config: FormConfig = {
-  collapsible: true,
-  maxVisibleFields: 6,
-  collapseTitle: '更多选项',
-  actions: {
-    showToggle: true,
-    expandText: '展开',
-    collapseText: '收起'
-  }
-}
-```
-
-## 🎭 插槽支持
-
-### 字段插槽
+### 表单方法调用
 
 ```vue
 <template>
-  <CleverForm v-model="formData" :schemas="schemas">
-    <!-- 自定义字段渲染 -->
-    <template #custom="{ schema, formData, methods }">
-      <div>自定义字段内容</div>
-    </template>
-    
-    <!-- 字段标签插槽 -->
-    <template #label-name="{ schema, formData }">
-      <span style="color: red;">{{ schema.label }} *</span>
-    </template>
-    
-    <!-- 字段前缀插槽 -->
-    <template #prefix-name="{ schema, formData }">
-      <NIcon><UserOutline /></NIcon>
-    </template>
-    
-    <!-- 字段后缀插槽 -->
-    <template #suffix-name="{ schema, formData }">
-      <NButton size="small">验证</NButton>
-    </template>
-    
-    <!-- 选项插槽 -->
-    <template #options-gender="{ schema, formData }">
-      <NRadio value="male">👨 男</NRadio>
-      <NRadio value="female">👩 女</NRadio>
-    </template>
-    
-    <!-- 上传插槽 -->
-    <template #upload-avatar="{ schema, formData }">
-      <NButton>选择头像</NButton>
-    </template>
-  </CleverForm>
+  <CleverForm
+    ref="formRef"
+    v-model="formData"
+    :schemas="schemas"
+  />
+  <NButton @click="validateForm">验证表单</NButton>
+  <NButton @click="resetForm">重置表单</NButton>
 </template>
-```
 
-### 操作按钮插槽
+<script setup lang="ts">
+import { ref } from 'vue'
 
-```vue
-<template>
-  <CleverForm v-model="formData" :schemas="schemas">
-    <!-- 自定义操作按钮 -->
-    <template #actions="{ methods }">
-      <NButton @click="methods.reset">重置</NButton>
-      <NButton type="primary" @click="methods.submit">提交</NButton>
-      <NButton @click="handlePreview">预览</NButton>
-    </template>
-  </CleverForm>
-</template>
-```
+const formRef = ref()
+const formData = ref({})
 
-## 🎯 最佳实践
-
-### 1. 类型安全
-
-```typescript
-// 定义表单数据类型
-interface UserForm {
-  name: string
-  email: string
-  age: number | null
-  gender: 'male' | 'female' | null
+const validateForm = async () => {
+  const result = await formRef.value?.validate()
+  console.log('验证结果:', result)
 }
 
-// 使用类型约束
-const formData = ref<UserForm>({
-  name: '',
-  email: '',
-  age: null,
-  gender: null
-})
-
-// 类型安全的字段配置
-const schemas: FormFieldSchema[] = [
-  {
-    field: 'name' as keyof UserForm,
-    label: '姓名',
-    component: 'n-input'
-  }
-]
-```
-
-### 2. 性能优化
-
-```typescript
-// 使用 shallowRef 优化大表单性能
-const formData = shallowRef({
-  // 大量字段...
-})
-
-// 按需加载字段配置
-const schemas = computed(() => {
-  return condition.value ? basicSchemas : extendedSchemas
-})
-
-// 使用 v-show 而不是 v-if 控制字段显示
-{
-  field: 'email',
-  label: '邮箱',
-  component: 'n-input',
-  visible: (formData) => formData.showEmail
+const resetForm = () => {
+  formRef.value?.reset()
 }
+</script>
 ```
 
-### 3. 表单验证
+## 🔍 类型安全
+
+CleverForm 提供完整的 TypeScript 类型支持：
 
 ```typescript
-// 统一的验证规则
-const commonRules = {
-  required: { required: true, message: '此字段为必填项' },
-  email: { type: 'email', message: '请输入正确的邮箱格式' },
-  phone: { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' }
-}
+import type {
+  FormSchema,
+  LayoutConfig,
+  PopupConfig,
+  ValidationRule,
+  FieldComponentType,
+  FormConfig,
+  ValidationResult
+} from '@clever-component/clever-form'
 
-// 复用验证规则
-const schemas: FormFieldSchema[] = [
-  {
-    field: 'email',
-    label: '邮箱',
-    component: 'n-input',
-    rules: [commonRules.required, commonRules.email]
-  }
-]
-```
-
-### 4. 国际化支持
-
-```typescript
-// 使用 i18n
-const { t } = useI18n()
-
-const schemas: FormFieldSchema[] = [
+// 类型安全的表单配置
+const schemas: FormSchema[] = [
   {
     field: 'name',
-    label: t('form.name'),
-    component: 'n-input',
-    componentProps: {
-      placeholder: t('form.namePlaceholder')
-    },
+    label: '姓名',
+    component: 'input', // 自动类型提示
+    required: true,
     rules: [
-      { required: true, message: t('form.nameRequired') }
+      { required: true, message: '请输入姓名' }
     ]
   }
 ]
 ```
 
-## 🔍 故障排除
+## 🚀 性能优化
 
-### 常见问题
+### 大型表单优化
 
-1. **字段不显示**
-   - 检查 `visible` 属性
-   - 确认字段配置正确
-   - 检查组件名称是否正确
+```vue
+<template>
+  <CleverForm
+    v-model="formData"
+    :schemas="schemas"
+    :config="{ virtualScroll: true }"
+  />
+</template>
+```
 
-2. **验证不生效**
-   - 确认 `rules` 配置正确
-   - 检查字段 `field` 属性是否匹配
-   - 确认表单数据结构正确
-
-3. **样式问题**
-   - 检查 CSS 变量是否正确
-   - 确认 Naive UI 主题配置
-   - 检查响应式断点设置
-
-4. **性能问题**
-   - 使用 `shallowRef` 优化大表单
-   - 避免在 `visible` 函数中进行复杂计算
-   - 合理使用字段懒加载
-
-### 调试技巧
+### 按需加载
 
 ```typescript
-// 开启调试模式
-const config: FormConfig = {
-  debug: true // 在控制台输出调试信息
-}
-
-// 监听表单变化
-watch(formData, (newData) => {
-  console.log('表单数据变化:', newData)
-}, { deep: true })
-
-// 监听字段变化
-const handleFieldChange = (field: string, value: any, oldValue: any) => {
-  console.log(`字段 ${field} 从 ${oldValue} 变为 ${value}`)
-}
+// 只导入需要的组件
+import { CleverForm, InputField, SelectField } from '@clever-component/clever-form'
 ```
 
-## 📄 更新日志
+## 🤝 贡献指南
 
-### v2.0.0
+我们欢迎所有形式的贡献，包括但不限于：
 
-- 🎉 全新的组件架构
-- ✨ 完整的 TypeScript 重写
-- 🎨 新增多种布局模式
-- 🧩 更丰富的字段类型支持
-- 📱 更好的响应式设计
-- 🔧 更灵活的配置选项
-- 🎭 更强大的插槽支持
-- ⚡ 更好的性能优化
+- 🐛 Bug 报告
+- 💡 功能建议
+- 📝 文档改进
+- 🔧 代码贡献
 
-## 📜 许可证
+### 开发环境搭建
 
-MIT License
+```bash
+# 克隆项目
+git clone https://github.com/your-org/clever-component.git
 
-## 🤝 贡献
+# 安装依赖
+cd clever-component
+pnpm install
 
-欢迎提交 Issue 和 Pull Request！
+# 启动开发服务器
+pnpm dev
 
-## 📞 支持
+# 运行测试
+pnpm test
 
-如果你在使用过程中遇到问题，可以通过以下方式获取帮助：
-
-- 查看文档：[组件文档](./docs)
-- 提交 Issue：[GitHub Issues](https://github.com/your-repo/issues)
-- 讨论交流：[GitHub Discussions](https://github.com/your-repo/discussions)
-    span?: number
-    offset?: number
-    flex?: string
-    minWidth?: string
-    maxWidth?: string
-    style?: Record<string, any>
-    className?: string
-  }
-  ifShow?: (formModel: any, value: any, methods: any) => boolean
-  onChange?: (newValue: any, oldValue: any, methods: any) => void
-}
+# 构建项目
+pnpm build
 ```
 
-### 支持的组件类型
+### 提交规范
 
-- `NInput` - 输入框
-- `NInputNumber` - 数字输入框
-- `NInputTextArea` - 文本域
-- `NSelect` - 选择器
-- `NRadioGroup` - 单选框组
-- `NCheckbox` - 复选框组
-- `NDatePicker` - 日期选择器
-- `NTimePicker` - 时间选择器
-- `NSwitch` - 开关
-- `NSlider` - 滑块
-- `NRate` - 评分
-- `NDynamicTags` - 动态标签
+我们使用 [Conventional Commits](https://conventionalcommits.org/) 规范：
 
-## 高级功能
+```bash
+# 功能开发
+git commit -m "feat(form): add hybrid layout support"
 
-### 条件显示
+# Bug 修复
+git commit -m "fix(validation): resolve async validation issue"
 
-```javascript
-{
-  field: 'email',
-  label: '邮箱',
-  component: 'NInput',
-  ifShow: (formModel, value, methods) => {
-    return formModel.needEmail === true
-  }
-}
+# 文档更新
+git commit -m "docs(readme): update API documentation"
 ```
 
-### 字段联动
+## 📄 许可证
 
-```javascript
-{
-  field: 'city',
-  label: '城市',
-  component: 'NSelect',
-  onChange: (newValue, oldValue, methods) => {
-    // 根据城市选择更新区域选项
-    methods.setFieldValue('district', '')
-  }
-}
-```
+[MIT License](./LICENSE)
 
-### 自定义验证
+## 🙏 致谢
 
-```javascript
-{
-  field: 'password',
-  label: '密码',
-  component: 'NInput',
-  componentProps: { type: 'password' },
-  rules: [
-    { required: true, message: '请输入密码' },
-    {
-      validator: (rule, value) => {
-        if (value && value.length < 6) {
-          return new Error('密码长度不能少于6位')
-        }
-        return true
-      }
-    }
-  ]
-}
-```
+感谢以下开源项目的启发和支持：
 
-## 最佳实践
+- [Vue 3](https://vuejs.org/)
+- [Naive UI](https://www.naiveui.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
 
-### 1. 性能优化
+---
 
-- 对于大型表单，考虑使用分组或标签页布局
-- 合理使用 `ifShow` 条件显示，避免不必要的组件渲染
-- 对于复杂的联动逻辑，使用防抖处理
-
-### 2. 用户体验
-
-- 合理设置表单验证规则和错误提示
-- 使用 `labelMessage` 提供字段说明
-- 为必填字段设置明确的标识
-
-### 3. 布局设计
-
-- 根据表单复杂度选择合适的布局模式
-- 使用混合布局时，保持层级结构清晰
-- 注意响应式设计，确保在不同设备上的良好体验
-
-## 更新日志
-
-### v2.0.0
-
-- ✨ 新增混合布局支持
-- ✨ 新增容器类型 Schema
-- ✨ 新增 FormRenderer 递归渲染组件
-- 🐛 修复 submit 方法未正确暴露的问题
-- 💄 优化布局配置类型定义
-
-### v1.x.x
-
-- 基础表单功能
-- Grid、Flex、Tabs、Accordion 布局支持
-- 丰富的表单组件支持
-
-## 贡献
-
-欢迎提交 Issue 和 Pull Request 来帮助改进这个组件。
-
-## 许可证
-
-MIT
+如果这个项目对你有帮助，请给我们一个 ⭐️ Star！

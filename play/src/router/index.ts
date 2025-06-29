@@ -9,7 +9,7 @@ import CleverPopupDemo from '../demo/CleverPopupDemo.vue'
 import CleverTableDemo from '../demo/CleverTableDemo.vue'
 import CleverTableCrudDemo from '../demo/CleverTableCrudDemo.vue'
 import CleverComponentDemo from '../demo/CleverComponentDemo.vue'
-import SchemaHelpersDemo from '../demo/SchemaHelpersDemo.vue'
+
 
 // 首页组件
 const Home = {
@@ -90,78 +90,23 @@ const routes: RouteRecordRaw[] = [
       category: 'form'
     }
   },
-  {
-    path: '/form/linkage',
-    name: 'FormLinkage',
-    component: () => import('../demo/form-demos/FormLinkageDemo.vue'),
-    meta: {
-      title: '表单联动',
-      category: 'form'
-    }
-  },
-  {
-    path: '/form/grouped',
-    name: 'FormGrouped',
-    component: () => import('../demo/form-demos/GroupedFormDemo.vue'),
-    meta: {
-      title: '分组表单',
-      category: 'form'
-    }
-  },
-  {
-    path: '/form/layout',
-    name: 'FormLayout',
-    component: () => import('../demo/form-demos/ComplexLayoutDemo.vue'),
-    meta: {
-      title: '复杂布局',
-      category: 'form'
-    }
-  },
-  {
-    path: '/form/custom',
-    name: 'FormCustom',
-    component: () => import('../demo/form-demos/CustomComponentDemo.vue'),
-    meta: {
-      title: '自定义组件',
-      category: 'form'
-    }
-  },
-  {
-    path: '/form/nested-mixed',
-    name: 'FormCustom',
-    component: () => import('../demo/form-demos/NestedMixedLayoutDemo.vue'),
-    meta: {
-      title: '混合嵌套布局',
-      category: 'form'
-    }
-  },
-  {
-    path: '/form/api-config',
-    name: 'FormApiConfig',
-    component: () => import('../demo/form-demos/ApiConfigDemo.vue'),
-    meta: {
-      title: 'API配置',
-      category: 'form'
-    }
-  },
-  {
-    path: '/form/one-row',
-    name: 'FormOneRow',
-    component: () => import('../demo/form-demos/OnlyShowOneRowDemo.vue'),
-    meta: {
-      title: '单行显示',
-      category: 'form'
-    }
-  },
-  {
-    path: '/form/api-doc',
-    name: 'FormApiDoc',
-    component: () => import('../demo/form-demos/FormApiDoc.vue'),
-    meta: {
-      title: 'API文档',
-      category: 'form'
-    }
-  },
+
+
+  // TODO: 实现更多表单演示组件
+  // NestedMixedLayoutDemo.vue - 混合嵌套布局
+  // ApiConfigDemo.vue - API配置
+  // TODO: 实现更多表单演示组件
+  // OnlyShowOneRowDemo.vue - 单行显示
+  // FormApiDoc.vue - API文档
+  // {
+  //   path: '/form/api-doc',
+  //   name: 'FormApiDoc',
+  //   component: () => import('../demo/form-demos/FormApiDoc.vue'),
+  //   meta: {
+  //     title: 'API文档',
+  //     category: 'form'
+  //   }
+  // },
   // 表格组件相关路由
   {
     path: '/table',
@@ -218,25 +163,7 @@ const routes: RouteRecordRaw[] = [
       category: 'popup'
     }
   },
-  // 工具类
-  {
-    path: '/tools/schema-helpers',
-    name: 'SchemaHelpers',
-    component: SchemaHelpersDemo,
-    meta: {
-      title: 'Schema辅助工具',
-      category: 'tools'
-    }
-  },
-  {
-    path: '/tools/form-schema-helpers',
-    name: 'FormSchemaHelpers',
-    component: () => import('../demo/form-demos/SchemaHelpersDemo.vue'),
-    meta: {
-      title: '表单Schema工具',
-      category: 'tools'
-    }
-  }
+
 ]
 
 // 创建路由实例

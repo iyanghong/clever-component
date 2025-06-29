@@ -1,352 +1,459 @@
-import type { FormItemRule, FormProps } from 'naive-ui'
-import type { LabelPlacement, Size } from 'naive-ui/es/form/src/interface'
-import type { ButtonProps } from 'naive-ui/lib/button'
-import type { GridItemProps, GridProps } from 'naive-ui/lib/grid'
+/**
+ * 表单相关类型定义
+ * @description 定义表单核心功能的所有相关类型
+ */
+
+import type { VNode, Component, Ref } from 'vue'
+import type { FormInst, FormProps } from 'naive-ui'
+import type { BaseComponentProps, Size } from './common'
+import type { EventHandler } from './events'
+import type { FieldConfig } from './field'
+import type { ContainerConfig } from './layout'
 import type {
-  CreateApiFn,
-  DeleteApiFn,
-  GetApiFn,
-  UpdateApiFn
-} from '../../../../types/response'
-import type { CleverPopupProps } from '../../../clever-popup/types'
-import type { ComponentType } from './index'
+  ValidationConfig,
+  ValidationResult,
+  ValidationEngine
+} from './validation'
+import type { ApiConfig, ApiManager } from './api'
+import type { PopupConfig } from './popup'
 
-export interface CleverFormMethods<T extends Record<string, any> = any> {
-  resetFields: () => Promise<void>
-  setFieldValue: (field: keyof T, value: any) => void
-  getFieldValue: (field: keyof T) => any
-  setFormData: (values: Partial<T>) => void
-  getFormData: () => T
-  clearValidate: (name?: string | string[]) => Promise<void>
-  validate: (nameList?: any[]) => Promise<any>
-  submit: () => Promise<any>
-}
+// 表单模式
+export type FormMode = 'create' | 'edit' | 'view' | 'search'
 
-export interface FormFieldSchema<T extends Record<string, any> = any> {
-  /** 字段名 */
-  field: keyof T | string
-  /** 标签文本 */
-  label: string
-  /** 标签提示信息 */
-  labelMessage?: string
-  /** 标签宽度 */
-  labelWidth?: string | number
-  /** 标签提示样式 */
-  labelMessageStyle?: Record<string, any> | string
-  /** 默认值 */
-  defaultValue?: any
-  /** 组件类型 */
-  component: ComponentType
-  /** 组件属性 */
-  componentProps?: Record<string, any>
-  /** 自定义插槽名 */
-  slot?: string
-  /** 验证规则 */
-  rules?: FormItemRule | FormItemRule[]
-  /** 网格项属性 */
-  giProps?: GridItemProps
-  /** 是否占满整行 */
-  isFull?: boolean
-  /** 后缀文本 */
-  suffix?: string
-  /** 是否必填 */
-  required?: boolean
-  /** 条件显示函数 */
-  ifShow?: (formModel: T, value: any, methods: CleverFormMethods<T>) => boolean
-  /** 值变化回调 */
-  onChange?: (
-    newValue: any,
-    oldValue: any,
-    methods: CleverFormMethods<T>
-  ) => void | Promise<void>
-  /** 显示模式 */
-  showMode?: 'edit' | 'detail' | 'disable' | 'hidden'
+// 表单状态
+export type FormStatus =
+  | 'idle'
+  | 'loading'
+  | 'submitting'
+  | 'validating'
+  | 'success'
+  | 'error'
 
-  /** 字段布局配置 */
-  layout?: {
-    /** 占用列数 */
-    span?: number
-    /** 偏移列数 */
-    offset?: number
-    /** 响应式配置 */
-    responsive?: {
-      xs?: number | { span?: number; offset?: number }
-      sm?: number | { span?: number; offset?: number }
-      md?: number | { span?: number; offset?: number }
-      lg?: number | { span?: number; offset?: number }
-      xl?: number | { span?: number; offset?: number }
-      xxl?: number | { span?: number; offset?: number }
-    }
-    /** 自定义样式 */
-    style?: Record<string, any>
-    /** 自定义类名 */
-    className?: string
-  }
+// 表单数据类型
+export type FormData = Record<string, any>
 
-  /** 字段分组 */
-  group?: {
-    /** 分组名称 */
-    name: string
-    /** 分组标题 */
-    title?: string
-    /** 分组描述 */
-    description?: string
-    /** 分组样式 */
-    style?: Record<string, any>
-    /** 是否可折叠 */
-    collapsible?: boolean
-    /** 默认是否展开 */
-    defaultExpanded?: boolean
-  }
-
-  /** 字段排序权重 */
-  order?: number
-
-  /** 换行控制 */
-  breakLine?: boolean
-
-  /** 其他属性 */
-  [key: string]: any
-}
-
-export interface FormGroupSchema<T extends Record<string, any> = any> {
-  /** 类型标识 */
-  type: 'group'
-  /** 分组标题 */
-  title: string
-  /** 是否可以收缩 */
-  collapsible?: boolean
-  /** 是否默认展开分组 */
-  defaultExpanded?: boolean
-  /** 默认分多少列 */
-  columns?: number
-  /** 分组内字段集合 */
-  fields: FormFieldSchema<T>[]
-  /** 分组样式 */
-  style?: Record<string, any>
-  /** 分组类名 */
-  className?: string
-  /** 显示模式 */
-  showMode?: 'edit' | 'detail' | 'disable' | 'hidden'
-  /** 条件显示函数 */
-  ifShow?: (formModel: T, methods: CleverFormMethods<T>) => boolean
-}
-
-// 容器类型Schema
-export interface FormContainerSchema<T extends Record<string, any> = any> {
-  /** 类型标识 */
-  type: 'container'
-  /** 容器类型 */
-  containerType: 'tabs' | 'accordion' | 'grid' | 'flex' | 'card' | 'divider'
-  /** 容器名称 */
-  name?: string
-  /** 容器标题 */
+// 表单配置
+export interface FormConfig {
+  // 表单标识
+  id?: string
+  // 表单标题
   title?: string
-  /** 容器描述 */
+  // 表单描述
   description?: string
-  /** 是否可折叠 */
-  collapsible?: boolean
-  /** 是否默认展开 */
-  collapsed?: boolean
-  /** 子元素 */
-  children: (FormSchema<T> | FormContainerSchema<T>)[]
-  /** 容器配置 */
-  config?: Record<string, any>
-  /** 容器样式 */
-  style?: Record<string, any>
-  /** 容器类名 */
-  className?: string
-  /** 显示模式 */
-  showMode?: 'edit' | 'detail' | 'disable' | 'hidden'
-  /** Grid布局属性（用于混合布局中的Grid项配置） */
-  gridProps?: Record<string, any>
-  /** 条件显示函数 */
-  ifShow?: (formModel: T, methods: CleverFormMethods<T>) => boolean
-  /** 排序权重 */
-  order?: number
+  // 表单模式
+  mode?: FormMode
+  // 表单布局
+  layout: ContainerConfig
+  // 验证配置
+  validation?: ValidationConfig
+  // API配置
+  api?: ApiConfig
+  // 弹窗配置
+  popup?: PopupConfig
+  // 表单属性
+  props?: Partial<FormProps>
+  // 默认数据
+  defaultData?: FormData | (() => FormData) | (() => Promise<FormData>)
+  // 表单选项
+  options?: FormOptions
 }
 
-export type FormSchema<T extends Record<string, any> = any> =
-  | FormFieldSchema<T>
-  | FormGroupSchema<T>
-  | FormContainerSchema<T>
-
-export interface FormApiConfig<T extends Record<string, any> = any> {
-  // 获取单条数据的API
-  getApi?: GetApiFn<Record<string, any>>
-  // 新增数据的API
-  createApi?: CreateApiFn<T>
-  // 更新数据的API
-  updateApi?: UpdateApiFn<T>
-  // 删除数据的API
-  deleteApi?: DeleteApiFn<Record<string, any>>
-}
-
-export interface CleverFormProps<T extends Record<string, any> = any> {
-  /** 是否为弹窗模式 */
-  isPopup?: boolean
-  /** 弹窗模式类型 */
-  popupMode?: 'modal' | 'drawer'
-  /** 弹窗是否可见 */
-  popupVisible?: boolean
-  /** 弹窗配置 */
-  popupOption?: CleverPopupProps
-  /** 表单数据 */
-  data?: T
-  /** 标签宽度 */
-  labelWidth?: number | string
-  /** 表单配置项 */
-  schemas?: FormSchema<T>[]
-  /** Schema配置对象（支持直接传入辅助函数的返回值） */
-  schemaConfig?: {
-    schemas: FormSchema<T>[]
-    layoutConfig?: LayoutConfig
-  }
-  /** API配置 */
-  apiConfig?: FormApiConfig<T>
-  /** 表单模式 */
-  mode?: 'create' | 'edit' | 'view'
-  /** 数据ID（编辑模式时使用） */
-  dataId?: string | number
-  /** 自定义ID字段名，默认为'id' */
-  idField?: string
-  /** 是否只显示一行 */
-  onlyShowOneRow?: boolean
-  /** 表单尺寸 */
+// 表单选项
+export interface FormOptions {
+  // 表单大小
   size?: Size
-  /** 标签位置 */
-  labelPlacement?: LabelPlacement | undefined
-  /** 组件是否占满宽度 */
-  isFull?: boolean
-  /** 是否显示操作按钮组 */
-  showActionButtonGroup?: boolean
-  /** 是否显示重置按钮 */
-  showResetButton?: boolean
-  /** 重置按钮配置 */
-  resetButtonOptions?: ButtonProps
-  /** 是否显示提交按钮 */
-  showSubmitButton?: boolean
-  /** 提交按钮配置 */
-  submitButtonOptions?: ButtonProps
-  /** 是否显示展开收起按钮 */
-  showAdvancedButton?: boolean
-  /** 提交按钮文本 */
-  submitButtonText?: string
-  /** 重置按钮文本 */
-  resetButtonText?: string
-  /** 网格配置 */
-  gridProps?: GridProps
-  /** 网格项配置 */
-  giProps?: GridItemProps
-  /** 重置函数 */
-  resetFunc?: () => Promise<void>
-  /** 提交函数 */
-  submitFunc?: () => Promise<void>
-  /** 重置时是否提交 */
-  submitOnReset?: boolean
-  /** 折叠行数 */
-  collapsedRows?: number
-
-  /** 布局模式 */
-  layoutMode?: 'grid' | 'flex' | 'tabs' | 'accordion' | 'mixed'
-
-  /** 布局配置 */
-  layoutConfig?: LayoutConfig
-
-  /** 其他属性 */
-  [key: string]: any
+  // 标签位置
+  labelPlacement?: 'left' | 'top'
+  // 标签宽度
+  labelWidth?: number | string
+  // 标签对齐
+  labelAlign?: 'left' | 'center' | 'right'
+  // 是否显示标签冒号
+  showLabel?: boolean
+  // 是否显示必填星号
+  showRequiredMark?: boolean
+  // 是否显示反馈图标
+  showFeedback?: boolean
+  // 是否内联显示
+  inline?: boolean
+  // 是否禁用
+  disabled?: boolean
+  // 是否只读
+  readonly?: boolean
+  // 自动聚焦
+  autoFocus?: boolean
+  // 提交时验证
+  validateOnSubmit?: boolean
+  // 重置时清除验证
+  clearValidationOnReset?: boolean
+  // 自动保存
+  autoSave?: {
+    // 是否启用
+    enabled: boolean
+    // 保存间隔（毫秒）
+    interval: number
+    // 保存键
+    key?: string
+  }
+  // 确认离开
+  confirmBeforeLeave?: boolean
+  // 自定义样式类
+  customClass?: string
+  // 自定义内联样式
+  customStyle?: string | Record<string, any>
 }
 
-export interface FormActionType {
-  submit: () => Promise<any>
-  setProps: (formProps: Partial<FormProps>) => Promise<void>
-  setFieldsValue: (values: Record<string, any>) => Promise<void>
-  clearValidate: (name?: string | string[]) => Promise<void>
-  getFieldsValue: () => Record<string, any>
-  resetFields: () => Promise<void>
-  validate: (nameList?: any[]) => Promise<any>
+// 表单状态
+export interface FormState {
+  // 表单数据
+  data: FormData
+  // 原始数据（用于重置）
+  originalData: FormData
+  // 表单状态
+  status: FormStatus
+  // 是否已修改
+  isDirty: boolean
+  // 是否有效
+  isValid: boolean
+  // 是否正在提交
+  isSubmitting: boolean
+  // 是否正在加载
+  isLoading: boolean
+  // 错误信息
+  errors: Record<string, string[]>
+  // 警告信息
+  warnings: Record<string, string[]>
+  // 最后提交时间
+  lastSubmitTime?: number
+  // 最后验证时间
+  lastValidateTime?: number
 }
 
-export type RegisterFn = (formInstance: FormActionType) => void
-export type UseFormReturnType = [RegisterFn, FormActionType]
-
-// 布局配置类型
-export interface LayoutConfig {
-  // 混合布局顶层Grid配置
-  topLevelGrid?: {
-    cols?: number
-    xGap?: number
-    yGap?: number
-    responsive?: 'self' | 'screen'
-  }
-  // Grid 布局配置
-  grid?: {
-    cols?: number | string
-    xGap?: number
-    yGap?: number
-    responsive?: 'self' | 'screen'
-    collapsed?: boolean
-    collapsedRows?: number
-  }
-  // Flex 布局配置
-  flex?: {
-    direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse'
-    wrap?: 'nowrap' | 'wrap' | 'wrap-reverse'
-    justify?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly'
-    align?: 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch'
-    gap?: string | number
-  }
-  // Tabs 布局配置
-  tabs?: {
-    placement?: 'top' | 'right' | 'bottom' | 'left'
-    type?: 'line' | 'card' | 'bar' | 'segment'
-    closable?: boolean
-    addable?: boolean
-  }
-  // Accordion 布局配置
-  accordion?: {
-    accordion?: boolean
-    defaultExpandedNames?: string[]
-    arrowPlacement?: 'left' | 'right'
-  }
-  // Card 布局配置
-  card?: {
-    title?: string
-    bordered?: boolean
-    size?: 'small' | 'medium' | 'large'
-    collapsible?: boolean
-  }
+// 表单事件类型
+export interface FormEvents {
+  // 表单数据变化
+  'data:change': (data: FormData, field?: string, value?: any) => void
+  // 字段值变化
+  'field:change': (field: string, value: any, oldValue?: any) => void
+  // 字段聚焦
+  'field:focus': (field: string) => void
+  // 字段失焦
+  'field:blur': (field: string) => void
+  // 表单提交前
+  'submit:before': (data: FormData) => void | Promise<void>
+  // 表单提交
+  submit: (data: FormData) => void
+  // 表单提交成功
+  'submit:success': (result: any) => void
+  // 表单提交失败
+  'submit:error': (error: Error) => void
+  // 表单重置前
+  'reset:before': () => void
+  // 表单重置
+  reset: () => void
+  // 表单重置后
+  'reset:after': () => void
+  // 表单验证
+  validate: (results: ValidationResult[]) => void
+  // 表单状态变化
+  'status:change': (status: FormStatus, prevStatus: FormStatus) => void
+  // 表单加载
+  'load:start': () => void
+  // 表单加载完成
+  'load:complete': (data: FormData) => void
+  // 表单加载失败
+  'load:error': (error: Error) => void
+  // 表单销毁
+  destroy: () => void
 }
 
-export function getDefaultCleverFormProps(): CleverFormProps {
-  return {
-    isPopup: false,
-    popupMode: 'modal',
-    labelPlacement: 'left',
-    popupVisible: false,
-    labelWidth: 80,
-    schemas: [],
-    layout: 'inline',
-    inline: false,
-    size: 'medium',
-    isFull: true,
-    showActionButtonGroup: true,
-    showResetButton: true,
-    showSubmitButton: true,
-    showAdvancedButton: false,
-    submitButtonText: '确认',
-    resetButtonText: '重置',
-    gridProps: { cols: '1 s:1 m:2 l:3 xl:4 2xl:4' },
-    collapsedRows: 1,
-    submitOnReset: false,
-    layoutMode: 'grid',
-    layoutConfig: {
-      grid: {
-        cols: '1 s:1 m:2 l:3 xl:4 2xl:4',
-        xGap: 16,
-        yGap: 16,
-        responsive: 'screen'
-      }
-    }
-  }
+// 表单方法接口
+export interface FormMethods {
+  // 获取表单数据
+  getData(): FormData
+
+  // 设置表单数据
+  setData(data: Partial<FormData>): void
+
+  // 获取字段值
+  getFieldValue(field: string): any
+
+  // 设置字段值
+  setFieldValue(field: string, value: any): void
+
+  // 重置表单
+  reset(data?: FormData): void
+
+  // 清空表单
+  clear(): void
+
+  // 提交表单
+  submit(): Promise<any>
+
+  // 验证表单
+  validate(fields?: string[]): Promise<ValidationResult[]>
+
+  // 验证字段
+  validateField(field: string): Promise<ValidationResult[]>
+
+  // 清除验证
+  clearValidation(fields?: string[]): void
+
+  // 获取表单状态
+  getState(): FormState
+
+  // 获取表单引用
+  getFormRef(): Ref<FormInst | undefined>
+
+  // 获取验证引擎
+  getValidationEngine(): ValidationEngine
+
+  // 获取API管理器
+  getApiManager(): ApiManager
+
+  // 刷新表单
+  refresh(): Promise<void>
+
+  // 销毁表单
+  destroy(): void
+}
+
+// 表单引擎接口
+export interface FormEngine extends FormMethods {
+  // 表单配置
+  config: FormConfig
+  // 表单状态
+  state: Ref<FormState>
+  // 事件总线
+  events: Record<keyof FormEvents, EventHandler[]>
+
+  // 初始化表单
+  initialize(config: FormConfig): Promise<void>
+
+  // 渲染表单
+  render(): VNode
+
+  // 监听事件
+  on<K extends keyof FormEvents>(event: K, handler: FormEvents[K]): void
+
+  // 移除事件监听
+  off<K extends keyof FormEvents>(event: K, handler?: FormEvents[K]): void
+
+  // 触发事件
+  emit<K extends keyof FormEvents>(
+    event: K,
+    ...args: Parameters<FormEvents[K]>
+  ): void
+}
+
+// 表单构建器接口
+export interface FormBuilder {
+  // 设置表单ID
+  id(id: string): FormBuilder
+
+  // 设置表单标题
+  title(title: string): FormBuilder
+
+  // 设置表单描述
+  description(description: string): FormBuilder
+
+  // 设置表单模式
+  mode(mode: FormMode): FormBuilder
+
+  // 设置表单布局
+  layout(layout: ContainerConfig): FormBuilder
+
+  // 设置验证配置
+  validation(validation: ValidationConfig): FormBuilder
+
+  // 设置API配置
+  api(api: ApiConfig): FormBuilder
+
+  // 设置弹窗配置
+  popup(popup: PopupConfig): FormBuilder
+
+  // 设置表单属性
+  props(props: Partial<FormProps>): FormBuilder
+
+  // 设置默认数据
+  defaultData(data: FormData): FormBuilder
+
+  // 设置表单选项
+  options(options: FormOptions): FormBuilder
+
+  // 构建表单配置
+  build(): FormConfig
+}
+
+// 表单工厂接口
+export interface FormFactory {
+  // 创建表单引擎
+  createEngine(config: FormConfig): FormEngine
+
+  // 创建表单构建器
+  createBuilder(): FormBuilder
+
+  // 从JSON创建表单
+  fromJSON(json: string | object): FormEngine
+
+  // 从Schema创建表单
+  fromSchema(schema: any): FormEngine
+
+  // 注册字段组件
+  registerField(type: string, component: Component): void
+
+  // 注册容器组件
+  registerContainer(type: string, component: Component): void
+
+  // 注册验证器
+  registerValidator(name: string, validator: Function): void
+
+  // 注册中间件
+  registerMiddleware(middleware: any): void
+}
+
+// 表单渲染器接口
+export interface FormRenderer {
+  // 渲染表单
+  render(config: FormConfig, engine: FormEngine): VNode
+
+  // 渲染字段
+  renderField(config: FieldConfig, engine: FormEngine): VNode
+
+  // 渲染容器
+  renderContainer(config: ContainerConfig, engine: FormEngine): VNode
+
+  // 渲染验证消息
+  renderValidation(field: string, errors: string[]): VNode
+
+  // 渲染加载状态
+  renderLoading(): VNode
+
+  // 渲染错误状态
+  renderError(error: Error): VNode
+}
+
+// 表单中间件接口
+export interface FormMiddleware {
+  // 中间件名称
+  name: string
+  // 执行顺序
+  order?: number
+
+  // 初始化钩子
+  onInit?(engine: FormEngine): void
+
+  // 数据变化钩子
+  onDataChange?(data: FormData, field?: string, value?: any): void
+
+  // 提交前钩子
+  onBeforeSubmit?(data: FormData): FormData | Promise<FormData>
+
+  // 提交后钩子
+  onAfterSubmit?(result: any, data: FormData): void
+
+  // 验证钩子
+  onValidate?(results: ValidationResult[]): ValidationResult[]
+
+  // 销毁钩子
+  onDestroy?(engine: FormEngine): void
+}
+
+// 表单插件接口
+export interface FormPlugin {
+  // 插件名称
+  name: string
+  // 插件版本
+  version?: string
+
+  // 安装插件
+  install(factory: FormFactory): void
+
+  // 卸载插件
+  uninstall?(factory: FormFactory): void
+
+  // 插件配置
+  options?: Record<string, any>
+}
+
+// 表单上下文
+export interface FormContext {
+  // 表单数据
+  formData: FormData
+  // 表单配置
+  formConfig: Ref<FormConfig | null>
+  // 表单状态
+  formStatus: Ref<FormStatus>
+  // 表单错误
+  formErrors: Ref<Record<string, ValidationResult>>
+  // 加载状态
+  loading: Ref<boolean>
+  // 提交状态
+  submitting: Ref<boolean>
+  // 计算属性
+  hasErrors: Ref<boolean>
+  isValid: Ref<boolean>
+  isDirty: Ref<boolean>
+  // 方法
+  getFieldValue: <T = any>(path: string) => T
+  setFieldValue: (path: string, value: any) => void
+  setFieldValues: (values: Record<string, any>) => void
+  updateData: (data: FormData) => void
+  reset: () => void
+  clear: () => void
+  validateForm: (path?: string) => Promise<ValidationResult>
+  submit: () => Promise<FormData>
+}
+
+// 表单提供者属性
+export interface FormProviderProps extends BaseComponentProps {
+  // 表单配置
+  config: FormConfig
+  // 初始数据
+  modelValue?: FormData
+  // 表单选项
+  options?: FormOptions
+}
+
+// 表单提供者事件
+export interface FormProviderEvents {
+  // 数据更新
+  'update:modelValue': (data: FormData) => void
+  // 提交事件
+  submit: (data: FormData) => void
+  // 重置事件
+  reset: () => void
+  // 验证事件
+  validate: (results: ValidationResult[]) => void
+}
+
+// 表单组件属性
+export interface CleverFormProps extends FormProviderProps {
+  // 是否在弹窗中显示
+  popup?: boolean | PopupConfig
+  // 自定义渲染器
+  renderer?: FormRenderer
+  // 中间件列表
+  middlewares?: FormMiddleware[]
+  // 插件列表
+  plugins?: FormPlugin[]
+}
+
+// 表单组件事件
+export interface CleverFormEvents extends FormProviderEvents {
+  // 表单状态变化
+  'status:change': (status: FormStatus) => void
+  // 表单加载
+  load: (data: FormData) => void
+  // 表单错误
+  error: (error: Error) => void
+}
+
+// 表单组件暴露的方法
+export interface CleverFormExposed extends FormMethods {
+  // 获取表单引擎
+  getEngine(): FormEngine
+
+  // 获取表单上下文
+  getContext(): FormContext
 }

@@ -1,35 +1,110 @@
 // 按钮组件
 // CleverForm组件
-export { default as CleverForm } from './clever-form/src/form.vue'
+export { default as CleverForm } from './clever-form/src/components/CleverForm/index.vue'
+
+// CleverForm核心类型
 export type {
+  // 组件属性和事件
   CleverFormProps,
-  FormSchema,
-  CleverFormMethods,
-  FormActionType,
-  UseFormReturnType,
-  FormApiConfig,
-  FormFieldSchema,
-  FormGroupSchema,
-  FormContainerSchema,
-  LayoutConfig
+  CleverFormEvents,
+  CleverFormExposed,
+  // 表单配置和状态
+  FormConfig,
+  FormState,
+  FormData,
+  FormMode,
+  FormStatus,
+  FormOptions,
+  FormEvents,
+  FormMethods,
+  FormEngine,
+  FormBuilder,
+  FormFactory,
+  FormRenderer,
+  FormMiddleware,
+  FormPlugin,
+  FormContext
 } from './clever-form/src/types/form'
-export type { ComponentType } from './clever-form/src/types/index'
+
+// CleverForm字段类型
+export type {
+  FieldConfig,
+  FieldComponentType,
+  BaseFieldConfig,
+  InputFieldConfig,
+  SelectFieldConfig,
+  RadioFieldConfig,
+  CheckboxFieldConfig,
+  DateFieldConfig,
+  TimeFieldConfig,
+  NumberFieldConfig,
+  TextareaFieldConfig,
+  SwitchFieldConfig,
+  UploadFieldConfig,
+  CustomFieldConfig
+} from './clever-form/src/types/field'
+
+// CleverForm布局类型
+export type {
+  ContainerConfig,
+  ContainerType,
+  GridContainerConfig,
+  FlexContainerConfig,
+  TabsContainerConfig,
+  CollapseContainerConfig,
+  LayoutConfig,
+  ResponsiveConfig
+} from './clever-form/src/types/layout'
+
+// CleverForm验证类型
+export type {
+  ValidationConfig,
+  ValidationResult,
+  ValidationRule,
+  ValidationEngine,
+  ValidatorFunction,
+  AsyncValidatorFunction
+} from './clever-form/src/types/validation'
+
+// CleverForm API类型
+export type {
+  ApiConfig,
+  ApiManager,
+  ApiResponse,
+  ApiError,
+  RequestConfig,
+  ResponseTransformer
+} from './clever-form/src/types/api'
+
+// CleverForm事件类型
+export type {
+  Event,
+  EventHandler,
+  FormEvent,
+  FieldEvent,
+  ValidationEvent,
+  EventBus,
+  EventListenerConfig
+} from './clever-form/src/types/events'
+
+// CleverForm通用类型
+export type {
+  Size,
+  Status,
+  BaseComponentProps,
+  ConditionalFunction,
+  DynamicValue,
+  FieldEventHandler,
+  OptionItem
+} from './clever-form/src/types/common'
 
 // CleverForm辅助工具
 export {
-  createField,
-  GridLayoutBuilder,
-  FlexLayoutBuilder,
-  TabsLayoutBuilder,
-  AccordionLayoutBuilder,
-  MixedLayoutBuilder,
-  createGridLayout,
-  createFlexLayout,
-  createTabsLayout,
-  createAccordionLayout,
-  FieldPresets
-} from './clever-form/src/utils/schema-helpers'
-export type { QuickFieldOptions } from './clever-form/src/utils/schema-helpers'
+  is,
+  validate,
+  format,
+  error
+} from './clever-form/src/utils/index'
 
 // CleverPopup组件
 export { default as CleverPopup } from './clever-popup/index.vue'

@@ -25,7 +25,7 @@
 import { ref, computed, watch } from 'vue'
 import type { FormConfig } from '../types'
 import {FormMode} from '../types'
-import CleverForm from '../../../clever-form/index.vue'
+import CleverForm from '../../../clever-form/src/components/CleverForm/index.vue'
 import CleverPopup from '../../../clever-popup/index.vue'
 
 interface Props {

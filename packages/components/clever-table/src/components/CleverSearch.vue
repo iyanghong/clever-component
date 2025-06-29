@@ -313,7 +313,7 @@ import {
   TimeOutline,
   DownloadOutline
 } from '@vicons/ionicons5'
-import CleverForm from '../../../clever-form/index.vue'
+import CleverForm from '../../../clever-form/src/components/CleverForm/index.vue'
 import { useEnhancedSearch } from '../hook/use-enhanced-search'
 import {
   SearchMode,
