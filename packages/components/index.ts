@@ -33,12 +33,6 @@ export type {
   BaseFieldConfig,
   InputFieldConfig,
   SelectFieldConfig,
-  RadioFieldConfig,
-  CheckboxFieldConfig,
-  DateFieldConfig,
-  TimeFieldConfig,
-  NumberFieldConfig,
-  TextareaFieldConfig,
   SwitchFieldConfig,
   UploadFieldConfig,
   CustomFieldConfig
@@ -51,19 +45,14 @@ export type {
   GridContainerConfig,
   FlexContainerConfig,
   TabsContainerConfig,
-  CollapseContainerConfig,
-  LayoutConfig,
-  ResponsiveConfig
+  CollapseContainerConfig
 } from './clever-form/src/types/layout'
 
 // CleverForm验证类型
 export type {
   ValidationConfig,
   ValidationResult,
-  ValidationRule,
-  ValidationEngine,
-  ValidatorFunction,
-  AsyncValidatorFunction
+  ValidationEngine
 } from './clever-form/src/types/validation'
 
 // CleverForm API类型
@@ -71,9 +60,7 @@ export type {
   ApiConfig,
   ApiManager,
   ApiResponse,
-  ApiError,
-  RequestConfig,
-  ResponseTransformer
+  ApiError
 } from './clever-form/src/types/api'
 
 // CleverForm事件类型
@@ -118,7 +105,6 @@ export type {
   TableAction,
   HeaderAction,
   SearchConfig,
-  ApiConfig,
   PaginationConfig,
   CleverTableMethods,
   UseTableReturnType,
@@ -138,7 +124,6 @@ export type {
   SearchComponentProps,
   SearchComponentEmits
 } from './clever-table/src/types/index'
-export { FormMode } from './clever-table/src/types/index'
 
 // CleverTable增强搜索组合式函数
 export { useEnhancedSearch } from './clever-table/src/hook/use-enhanced-search'

@@ -33,6 +33,12 @@ export const COMPONENT_NAMES = {
   FLEX_CONTAINER: 'FlexContainer',
   TABS_CONTAINER: 'TabsContainer',
   COLLAPSE_CONTAINER: 'CollapseContainer',
+  VERTICAL_CONTAINER: 'VerticalContainer',
+  INLINE_CONTAINER: 'InlineContainer',
+  GROUP_CONTAINER: 'GroupContainer',
+  CARD_CONTAINER: 'CardContainer',
+  STEPS_CONTAINER: 'StepsContainer',
+  CUSTOM_CONTAINER: 'CustomContainer',
   
   // 弹窗组件
   POPUP_RENDERER: 'PopupRenderer',

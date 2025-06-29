@@ -1,28 +1,32 @@
 <template>
   <div class="popup-form-demo">
-    <n-space vertical size="large">
-      <!-- 示例说明 -->
-      <n-alert type="info" title="弹窗表单示例">
-        演示 CleverForm 在各种弹窗容器中的使用，包括模态框、抽屉、对话框等。
-      </n-alert>
-
-      <!-- 弹窗触发按钮 -->
-      <n-card title="弹窗类型">
+    <n-card title="弹窗表单演示" class="demo-card">
+      <!-- 弹窗类型选择 -->
+      <div class="control-panel">
         <n-space>
-          <n-button type="primary" @click="openModal">
-            模态框表单
+          <n-select
+            v-model:value="currentPopupType"
+            :options="popupTypeOptions"
+            placeholder="选择弹窗类型"
+            style="width: 200px"
+          />
+          <n-select
+            v-model:value="currentFormType"
+            :options="formTypeOptions"
+            placeholder="选择表单类型"
+            style="width: 200px"
+          />
+          <n-button @click="openPopup" type="primary">
+            打开弹窗
           </n-button>
-          <n-button type="info" @click="openDrawer">
-            抽屉表单
-          </n-button>
-          <n-button type="success" @click="openDialog">
-            对话框表单
-          </n-button>
-          <n-button type="warning" @click="openPopconfirm">
-            确认弹窗表单
+          <n-button @click="clearHistory" type="default" ghost>
+            清空历史
           </n-button>
         </n-space>
-      </n-card>
+      </div>
+    </n-card>
+
+    <n-space vertical size="large">
 
       <!-- 表单数据展示 -->
       <n-card title="最近提交的数据">
@@ -128,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import {
   NSpace,
   NAlert,
@@ -136,6 +140,7 @@ import {
   NCode,
   NEmpty,
   NButton,
+  NSelect,
   NModal,
   NDrawer,
   NDrawerContent,
@@ -146,17 +151,467 @@ import {
 import { CleverForm } from '@clever-component/components'
 import type { FormConfig, FormData } from '@clever-component/components'
 
+// 使用 Naive UI 的消息组件
+
+
+// 当前选择的弹窗类型和表单类型
+const currentPopupType = ref('modal')
+const currentFormType = ref('basic')
+
+// 弹窗类型选项
+const popupTypeOptions = [
+  { label: '模态框', value: 'modal' },
+  { label: '抽屉', value: 'drawer' },
+  { label: '对话框', value: 'dialog' },
+  { label: '确认弹窗', value: 'popconfirm' },
+  { label: '全屏弹窗', value: 'fullscreen' },
+  { label: '侧边弹窗', value: 'sidebar' }
+]
+
+// 表单类型选项
+const formTypeOptions = [
+  { label: '基础表单', value: 'basic' },
+  { label: '复杂表单', value: 'complex' },
+  { label: '验证表单', value: 'validation' },
+  { label: '步骤表单', value: 'steps' },
+  { label: '动态表单', value: 'dynamic' }
+]
+
 const message = useMessage()
 const dialog = useDialog()
+
+// 打开弹窗的统一方法
+const openPopup = () => {
+  // 重置表单数据
+  resetFormData()
+  
+  switch (currentPopupType.value) {
+    case 'modal':
+      modalVisible.value = true
+      break
+    case 'drawer':
+      drawerVisible.value = true
+      break
+    case 'dialog':
+      dialogVisible.value = true
+      break
+    case 'popconfirm':
+      popconfirmVisible.value = true
+      break
+    case 'fullscreen':
+      showFullscreen.value = true
+      break
+    case 'sidebar':
+      showSidebar.value = true
+      break
+    default:
+      console.warn('未知的弹窗类型:', currentPopupType.value)
+  }
+}
+
+// 重置表单数据
+const resetFormData = () => {
+  Object.assign(formData, {
+    // 基础字段
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+    
+    // 复杂表单字段
+    company: '',
+    position: '',
+    experience: '',
+    skills: [],
+    salary: null,
+    
+    // 验证表单字段
+    username: '',
+    password: '',
+    confirmPassword: '',
+    agreement: false,
+    
+    // 步骤表单字段
+    step1: {
+      basicInfo: '',
+      contact: ''
+    },
+    step2: {
+      preferences: [],
+      settings: ''
+    },
+    
+    // 动态表单字段
+    dynamicFields: []
+  })
+}
+
+// 清空历史数据
+const clearHistory = () => {
+  lastSubmittedData.value = null
+  resetFormData()
+  message.success('历史数据已清空')
+}
+
+// 表单提交处理
+const handleSubmit = (data: any) => {
+  console.log('表单提交:', data)
+  lastSubmittedData.value = { ...data }
+  
+  // 关闭所有弹窗
+  modalVisible.value = false
+  drawerVisible.value = false
+  dialogVisible.value = false
+  popconfirmVisible.value = false
+  showFullscreen.value = false
+  showSidebar.value = false
+  
+  // 显示成功消息
+  message.success('表单提交成功！')
+}
+
+// 表单验证处理
+const handleValidate = (isValid: boolean, errors: any) => {
+  console.log('表单验证:', { isValid, errors })
+  if (!isValid) {
+    message.error('表单验证失败，请检查输入内容')
+  }
+}
 
 // 弹窗显示状态
 const modalVisible = ref(false)
 const drawerVisible = ref(false)
 const dialogVisible = ref(false)
 const popconfirmVisible = ref(false)
+const showFullscreen = ref(false)
+const showSidebar = ref(false)
+
+// 表单数据
+const formData = reactive<FormData>({
+  // 基础字段
+  name: '',
+  email: '',
+  phone: '',
+  message: '',
+  
+  // 复杂表单字段
+  company: '',
+  position: '',
+  experience: '',
+  skills: [],
+  salary: null,
+  
+  // 验证表单字段
+  username: '',
+  password: '',
+  confirmPassword: '',
+  agreement: false,
+  
+  // 步骤表单字段
+  step1: {
+    basicInfo: '',
+    contact: ''
+  },
+  step2: {
+    preferences: [],
+    settings: ''
+  },
+  
+  // 动态表单字段
+  dynamicFields: []
+})
 
 // 最近提交的数据
 const lastSubmittedData = ref<FormData | null>(null)
+
+// 基础表单配置
+const basicFormConfig: FormConfig = {
+  id: 'basic-popup-form',
+  title: '基础信息表单',
+  layout: {
+    type: 'grid',
+    props: { cols: 1, rowGap: 16 },
+    children: [
+      {
+        field: 'name',
+        label: '姓名',
+        component: 'input',
+        required: true,
+        placeholder: '请输入姓名'
+      },
+      {
+        field: 'email',
+        label: '邮箱',
+        component: 'input',
+        required: true,
+        placeholder: '请输入邮箱地址',
+        props: { type: 'email' }
+      },
+      {
+        field: 'phone',
+        label: '手机号',
+        component: 'input',
+        placeholder: '请输入手机号'
+      },
+      {
+        field: 'message',
+        label: '留言',
+        component: 'textarea',
+        placeholder: '请输入留言内容',
+        props: { rows: 3 }
+      }
+    ]
+  }
+}
+
+// 复杂表单配置
+const complexFormConfig: FormConfig = {
+  id: 'complex-popup-form',
+  title: '求职申请表单',
+  layout: {
+    type: 'tabs',
+    props: {
+      type: 'line',
+      placement: 'top',
+      tabs: [
+        {
+          name: 'basic',
+          label: '基本信息',
+          children: [
+            {
+              field: 'name',
+              label: '姓名',
+              component: 'input',
+              required: true,
+              placeholder: '请输入姓名'
+            },
+            {
+              field: 'email',
+              label: '邮箱',
+              component: 'input',
+              required: true,
+              placeholder: '请输入邮箱地址'
+            },
+            {
+              field: 'phone',
+              label: '手机号',
+              component: 'input',
+              required: true,
+              placeholder: '请输入手机号'
+            }
+          ]
+        },
+        {
+          name: 'work',
+          label: '工作信息',
+          children: [
+            {
+              field: 'company',
+              label: '公司名称',
+              component: 'input',
+              placeholder: '请输入公司名称'
+            },
+            {
+              field: 'position',
+              label: '职位',
+              component: 'input',
+              placeholder: '请输入职位'
+            },
+            {
+              field: 'experience',
+              label: '工作经验',
+              component: 'select',
+              options: [
+                { label: '1年以下', value: '0-1' },
+                { label: '1-3年', value: '1-3' },
+                { label: '3-5年', value: '3-5' },
+                { label: '5年以上', value: '5+' }
+              ]
+            },
+            {
+              field: 'salary',
+              label: '期望薪资',
+              component: 'number-input',
+              placeholder: '请输入期望薪资',
+              props: { min: 0, precision: 0 }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+// 验证表单配置
+const validationFormConfig: FormConfig = {
+  id: 'validation-popup-form',
+  title: '用户注册表单',
+  layout: {
+    type: 'grid',
+    props: { cols: 1, rowGap: 16 },
+    children: [
+      {
+        field: 'username',
+        label: '用户名',
+        component: 'input',
+        required: true,
+        placeholder: '请输入用户名',
+        validation: {
+          required: '用户名不能为空',
+          rules: [
+            { min: 3, max: 20, message: '用户名长度必须在3-20个字符之间' },
+            { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线' }
+          ]
+        }
+      },
+      {
+        field: 'password',
+        label: '密码',
+        component: 'input',
+        required: true,
+        placeholder: '请输入密码',
+        props: { type: 'password' },
+        validation: {
+          required: '密码不能为空',
+          rules: [
+            { min: 6, max: 20, message: '密码长度必须在6-20个字符之间' }
+          ]
+        }
+      },
+      {
+        field: 'confirmPassword',
+        label: '确认密码',
+        component: 'input',
+        required: true,
+        placeholder: '请再次输入密码',
+        props: { type: 'password' },
+        validation: {
+          required: '确认密码不能为空',
+          rules: [
+            {
+              validator: (rule: any, value: string) => {
+                if (value !== formData.password) {
+                  return Promise.reject('两次输入的密码不一致')
+                }
+                return Promise.resolve()
+              }
+            }
+          ]
+        }
+      },
+      {
+        field: 'agreement',
+        label: '用户协议',
+        component: 'checkbox',
+        required: true,
+        props: { label: '我已阅读并同意用户协议' },
+        validation: {
+          rules: [
+            {
+              validator: (rule: any, value: boolean) => {
+                if (!value) {
+                  return Promise.reject('请同意用户协议')
+                }
+                return Promise.resolve()
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+// 步骤表单配置
+const stepsFormConfig: FormConfig = {
+  id: 'steps-popup-form',
+  title: '分步骤表单',
+  layout: {
+    type: 'steps',
+    props: {
+      current: 0,
+      direction: 'horizontal',
+      steps: [
+        {
+          title: '基本信息',
+          children: [
+            {
+              field: 'name',
+              label: '姓名',
+              component: 'input',
+              required: true,
+              placeholder: '请输入姓名'
+            },
+            {
+              field: 'email',
+              label: '邮箱',
+              component: 'input',
+              required: true,
+              placeholder: '请输入邮箱地址'
+            }
+          ]
+        },
+        {
+          title: '联系方式',
+          children: [
+            {
+              field: 'phone',
+              label: '手机号',
+              component: 'input',
+              required: true,
+              placeholder: '请输入手机号'
+            },
+            {
+              field: 'message',
+              label: '备注',
+              component: 'textarea',
+              placeholder: '请输入备注信息'
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+// 动态表单配置
+const dynamicFormConfig: FormConfig = {
+  id: 'dynamic-popup-form',
+  title: '动态表单',
+  layout: {
+    type: 'grid',
+    props: { cols: 1, rowGap: 16 },
+    children: [
+      {
+        field: 'name',
+        label: '姓名',
+        component: 'input',
+        required: true,
+        placeholder: '请输入姓名'
+      },
+      {
+        field: 'email',
+        label: '邮箱',
+        component: 'input',
+        required: true,
+        placeholder: '请输入邮箱地址'
+      }
+      // 动态字段将通过计算属性添加
+    ]
+  }
+}
+
+// 当前表单配置
+const currentFormConfig = computed(() => {
+  const configs = {
+    basic: basicFormConfig,
+    complex: complexFormConfig,
+    validation: validationFormConfig,
+    steps: stepsFormConfig,
+    dynamic: dynamicFormConfig
+  }
+  return configs[currentFormType.value as keyof typeof configs]
+})
 
 // 模态框表单数据
 const modalFormData = ref<FormData>({

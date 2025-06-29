@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     :class="[
       'field-renderer',
       {
@@ -108,7 +108,7 @@
 
     <!-- 上传 -->
     <n-upload
-      v-else-if="getActualComponent(config.component) === 'NUpload'"
+      v-else-if="getActualComponent(config.component) === 'upload'"
       v-model:file-list="fieldValue"
       v-bind="getComponentProps(config)"
       @update:file-list="handleNaiveUpdate"
@@ -118,7 +118,7 @@
 
     <!-- 数字输入框 -->
     <n-input-number
-      v-else-if="getActualComponent(config.component) === 'NInputNumber'"
+      v-else-if="getActualComponent(config.component) === 'number-input'"
       v-model:value="fieldValue"
       v-bind="getComponentProps(config)"
       @update:value="handleNaiveUpdate"
@@ -128,7 +128,7 @@
 
     <!-- 文本域 -->
     <n-input
-      v-else-if="getActualComponent(config.component) === 'NInputTextArea'"
+      v-else-if="getActualComponent(config.component) === 'textarea'"
       type="textarea"
       v-model:value="fieldValue"
       v-bind="getComponentProps(config)"
@@ -153,7 +153,10 @@
       <div class="field-renderer__unknown-content">
         <n-icon class="field-renderer__unknown-icon">
           <svg viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+            <path
+              fill="currentColor"
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"
+            />
           </svg>
         </n-icon>
         <div class="field-renderer__unknown-text">未知组件类型</div>
@@ -225,61 +228,61 @@ const emit = defineEmits<Emits>()
 // 计算当前字段值
 const fieldValue = computed({
   get: () => formContext?.getFieldValue?.(props.config.field),
-  set: (value) => formContext?.setFieldValue?.(props.config.field, value)
+  set: value => formContext?.setFieldValue?.(props.config.field, value)
 })
 
 // 组件名映射
 const componentMap: Record<string, string> = {
-  'input': 'NInput',
-  'textarea': 'NInputTextArea',
-  'number': 'NInputNumber',
+  input: 'NInput',
+  textarea: 'NInputTextArea',
+  number: 'NInputNumber',
   'number-input': 'NInputNumber',
-  'select': 'NSelect',
-  'checkbox': 'NCheckboxGroup',
+  select: 'NSelect',
+  checkbox: 'NCheckboxGroup',
   'checkbox-group': 'NCheckboxGroup',
-  'radio': 'NRadioGroup',
+  radio: 'NRadioGroup',
   'radio-group': 'NRadioGroup',
-  'date': 'NDatePicker',
+  date: 'NDatePicker',
   'date-picker': 'NDatePicker',
-  'time': 'NTimePicker',
+  time: 'NTimePicker',
   'time-picker': 'NTimePicker',
-  'switch': 'NSwitch',
-  'slider': 'NSlider',
-  'rate': 'NRate',
-  'upload': 'NUpload',
-  'password': 'NInput',
-  'search': 'NInput'
+  switch: 'NSwitch',
+  slider: 'NSlider',
+  rate: 'NRate',
+  upload: 'NUpload',
+  password: 'NInput',
+  search: 'NInput'
 }
 
 // 获取实际组件名
 const getActualComponent = (component: string) => {
   return componentMap[component] || component
 }
-
+const componentType = computed(() => {
+  return getActualComponent(props.config.component)
+})
 // 判断是否为输入组件
 const isInputComponent = (component: string) => {
   const inputTypes = ['input', 'password', 'search']
-  return inputTypes.includes(component) || getActualComponent(component) === 'NInput'
+  return (
+    inputTypes.includes(component) || getActualComponent(component) === 'NInput'
+  )
 }
 
 // 获取组件属性
 const getComponentProps = (config: FieldConfig) => {
   const configProps = config.props || {}
-  
-  const baseProps = {
+
+  const baseProps: Record<string, any> = {
     placeholder: configProps.placeholder || `请输入${config.label}`,
     disabled: props.disabled || configProps.disabled || false,
     readonly: props.readonly || configProps.readonly || false,
     loading: props.loading || configProps.loading || false,
     ...configProps
   }
-  
+
   // 移除不需要传递给组件的属性
-  const { 
-    options, 
-    field, 
-    ...componentProps 
-  } = baseProps
+  const { options, field, ...componentProps } = baseProps
   return componentProps
 }
 
@@ -294,7 +297,7 @@ const handleValueChange = (value: any) => {
   const oldValue = fieldValue.value
   fieldValue.value = value
   emit('change', value)
-  
+
   // 如果配置了 onChange 回调，则调用
   if (props.config.events?.change) {
     props.config.events.change(value, oldValue)
@@ -321,27 +324,27 @@ const handleNaiveBlur = () => {
 .field-renderer {
   width: 100%;
   position: relative;
-  
+
   &--loading {
     opacity: 0.8;
     pointer-events: none;
   }
-  
+
   &--disabled {
     opacity: 0.6;
     pointer-events: none;
   }
-  
+
   &--readonly {
     pointer-events: none;
   }
-  
+
   &__unknown {
     padding: 16px;
     border: 2px dashed var(--n-border-color);
     border-radius: 6px;
     background-color: var(--n-color-target);
-    
+
     &-content {
       display: flex;
       flex-direction: column;
@@ -349,17 +352,17 @@ const handleNaiveBlur = () => {
       gap: 8px;
       text-align: center;
     }
-    
+
     &-icon {
       font-size: 20px;
     }
-    
+
     &-text {
       color: var(--n-text-color-2);
       font-size: 14px;
       font-weight: 500;
     }
-    
+
     &-field {
       color: var(--n-text-color-3);
       font-size: 12px;

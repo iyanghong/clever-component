@@ -1027,13 +1027,15 @@ export const getFormItemProps = (schema: FieldConfig) => {
  */
 export const normalizeChildren = (
   children: Array<FieldConfig | ContainerConfig>
-): Array<(FieldConfig & { type: 'field' }) | (ContainerConfig & { type: 'container' })> => {
-  return children.map(item => {
+): Array<
+  (FieldConfig & { type: 'field' }) | (ContainerConfig & { type: 'container' })
+> => {
+  return children.map((item: any) => {
     // 如果已经有type属性，直接返回
     if ('type' in item && item.type) {
       return item as any
     }
-    
+
     // 判断是否为字段配置：包含field和component属性
     if ('field' in item && 'component' in item) {
       return {
@@ -1041,16 +1043,16 @@ export const normalizeChildren = (
         type: 'field' as const
       }
     }
-    
+
     // 判断是否为容器配置：包含children属性
     if ('children' in item) {
       return {
         ...item,
         type: 'container' as const,
         children: normalizeChildren(item.children)
-      }
+      } as FieldConfig
     }
-    
+
     // 默认作为字段处理
     return {
       ...item,

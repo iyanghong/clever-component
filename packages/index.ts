@@ -9,18 +9,22 @@ export * from './utils'
 export { default as CleverForm } from './components/clever-form/src/components/CleverForm/index.vue'
 export { default as CleverPopup } from './components/clever-popup/index.vue'
 export { default as CleverTable } from './components/clever-table/index.vue'
-
 // 导出类型
-export type { CleverFormProps, FormSchema, CleverFormMethods, UseFormReturnType } from './components/clever-form/src/types/form'
+export type {
+  CleverFormProps,
+  FormSchema,
+  CleverFormMethods,
+  UseFormReturnType
+} from './components/clever-form/src/types/form'
 export type { ComponentType } from './components/clever-form/src/types/index'
 export type { CleverPopupProps } from './components/clever-popup/types'
-export type { 
-  CleverTableProps, 
-  TableColumn, 
-  TableAction, 
-  HeaderAction, 
-  SearchConfig, 
-  ApiConfig, 
+export type {
+  CleverTableProps,
+  TableColumn,
+  TableAction,
+  HeaderAction,
+  SearchConfig,
+  ApiConfig,
   PaginationConfig,
   CleverTableMethods,
   UseTableReturnType

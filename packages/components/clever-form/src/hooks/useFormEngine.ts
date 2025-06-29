@@ -4,12 +4,7 @@
  */
 
 import { ref, reactive, computed, onUnmounted } from 'vue'
-import type {
-  FormConfig,
-  FormData,
-  FormEngine,
-  FormEngineState
-} from '../types'
+import { FormConfig, FormData, FormEngine, FormState } from '../types'
 import utils from '../utils'
 import { FORM_STATUS } from '../constants'
 
@@ -24,14 +19,15 @@ const engines = new Map<string, FormEngine>()
  * @returns 表单引擎实例和管理方法
  */
 export function useFormEngine(id?: string) {
-  const engineId = id || `form-engine-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  
+  const engineId =
+    id || `form-engine-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
   // 引擎状态
-  const engineState = ref<FormEngineState>({
+  const engineState = ref<{ initialized: Boolean; destroyed: Boolean }>({
     initialized: false,
     destroyed: false
   })
-  
+
   const initialized = computed(() => engineState.value.initialized)
   const destroyed = computed(() => engineState.value.destroyed)
 
@@ -42,7 +38,7 @@ export function useFormEngine(id?: string) {
     const engine: FormEngine = {
       id: engineId,
       config,
-      state: reactive({
+      state: reactive<FormState>({
         status: FORM_STATUS.IDLE,
         data: {},
         errors: {},
@@ -71,10 +67,10 @@ export function useFormEngine(id?: string) {
         try {
           engine.state.submitting = true
           engine.state.status = FORM_STATUS.SUBMITTING
-          
+
           // 这里可以添加提交逻辑
           // 由于移除了事件系统，直接返回数据
-          
+
           engine.state.status = FORM_STATUS.SUCCESS
           return engine.state.data
         } catch (error) {
@@ -108,24 +104,27 @@ export function useFormEngine(id?: string) {
    * 初始化表单引擎
    */
   const initialize = (config: FormConfig): FormEngine => {
+    // 如果已经初始化，先销毁再重新初始化
     if (engineState.value.initialized) {
-      throw new Error(`表单引擎 ${engineId} 已经初始化`)
+      console.warn(`表单引擎 ${engineId} 已经初始化，将重新初始化`)
+      destroy()
     }
 
     if (engineState.value.destroyed) {
-      throw new Error(`表单引擎 ${engineId} 已被销毁`)
+      // 重置销毁状态，允许重新初始化
+      engineState.value.destroyed = false
     }
 
     try {
       // 创建引擎实例
       const engine = createFormEngine(config)
-      
+
       // 存储引擎实例
       engines.set(engineId, engine)
-      
+
       // 标记为已初始化
       engineState.value.initialized = true
-      
+
       return engine
     } catch (error) {
       throw new Error(`初始化表单引擎失败: ${error}`)
@@ -142,7 +141,7 @@ export function useFormEngine(id?: string) {
 
     // 从全局存储中移除
     engines.delete(engineId)
-    
+
     // 标记为已销毁
     engineState.value.destroyed = true
     engineState.value.initialized = false
@@ -170,22 +169,22 @@ export function useFormEngine(id?: string) {
       const engine = getEngine()
       return engine?.getData(path)
     },
-    
+
     setData: (data: FormData) => {
       const engine = getEngine()
       engine?.setData(data)
     },
-    
+
     updateData: (path: string, value: any) => {
       const engine = getEngine()
       engine?.updateData(path, value)
     },
-    
+
     submit: async () => {
       const engine = getEngine()
       return engine?.submit()
     },
-    
+
     reset: () => {
       const engine = getEngine()
       engine?.reset()

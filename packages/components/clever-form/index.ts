@@ -4,19 +4,19 @@
  */
 
 // 组件导出
-export * from './components'
+export * from './src/components'
 
 // 类型导出
-export type * from './types'
+export type * from './src/types'
 
 // 常量导出
-export * from './constants'
+export * from './src/constants'
 
 // 工具函数导出
-export * from './utils'
+export * from './src/utils'
 
 // Hooks导出
-export * from './hooks'
+export * from './src/hooks'
 
 
 

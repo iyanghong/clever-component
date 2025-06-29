@@ -11,10 +11,6 @@ export { default as PopconfirmPopup } from './PopconfirmPopup.vue'
 export { default as PopoverPopup } from './PopoverPopup.vue'
 
 // 类型导出
-export type {
-  PopupComponentType,
-  PopupComponentName
-} from '../../types'
 
 // 弹窗组件映射
 export const POPUP_COMPONENT_MAP = {
@@ -27,4 +23,5 @@ export const POPUP_COMPONENT_MAP = {
 
 // 弹窗组件类型
 export type PopupComponentType = keyof typeof POPUP_COMPONENT_MAP
-export type PopupComponentName = typeof POPUP_COMPONENT_MAP[PopupComponentType]
+export type PopupComponentName =
+  (typeof POPUP_COMPONENT_MAP)[PopupComponentType]

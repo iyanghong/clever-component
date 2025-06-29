@@ -19,19 +19,11 @@ export * from './popup-system'
 export type {
   // 核心类型
   FormConfig,
-  FormItemConfig,
   FormData,
-  FormValidationResult,
-  FormInstance,
-  FormItemInstance,
-  
+
   // 字段类型
   FieldConfig,
-  FieldType,
-  FieldValue,
   FieldValidationRule,
-  FieldValidationResult,
-  FieldInstance,
   
   // 容器类型
   ContainerConfig,
@@ -46,17 +38,9 @@ export type {
   PopupType,
   ModalPopupConfig,
   DrawerPopupConfig,
-  DialogPopupConfig,
-  PopconfirmPopupConfig,
-  PopoverPopupConfig,
   
   // 组件映射类型
   FieldComponentType,
-  FieldComponentName,
-  ContainerComponentType,
-  ContainerComponentName,
-  PopupComponentType,
-  PopupComponentName
 } from '../types'
 
 // 常量导出

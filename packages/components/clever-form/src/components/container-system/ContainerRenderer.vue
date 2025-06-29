@@ -43,7 +43,12 @@ import GridContainer from './GridContainer.vue'
 import FlexContainer from './FlexContainer.vue'
 import TabsContainer from './TabsContainer.vue'
 import CollapseContainer from './CollapseContainer.vue'
-// 其他容器组件暂未实现
+import VerticalContainer from './VerticalContainer.vue'
+import InlineContainer from './InlineContainer.vue'
+import GroupContainer from './GroupContainer.vue'
+import CardContainer from './CardContainer.vue'
+import StepsContainer from './StepsContainer.vue'
+import CustomContainer from './CustomContainer.vue'
 
 // 组件名称
 defineOptions({
@@ -79,20 +84,24 @@ interface Emits {
 defineEmits<Emits>()
 
 // 容器组件映射
-const containerComponents = {
-  grid: GridContainer,
-  flex: FlexContainer,
-  tabs: TabsContainer,
-  collapse: CollapseContainer
-  // 其他容器类型暂未实现
-} as const
+  const containerComponents = {
+    grid: GridContainer,
+    flex: FlexContainer,
+    tabs: TabsContainer,
+    collapse: CollapseContainer,
+    vertical: VerticalContainer,
+    inline: InlineContainer,
+    group: GroupContainer,
+    card: CardContainer,
+    steps: StepsContainer,
+    custom: CustomContainer
+  } as const
 
 // 计算当前容器组件
 const containerComponent = computed(() => {
   const type = props.config.type
   return containerComponents[type as keyof typeof containerComponents]
 })
-console.log('containerComponent',containerComponent.value)
 </script>
 
 <style lang="less">

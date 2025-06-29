@@ -13,35 +13,14 @@ export { useLayout } from './useLayout'
 export { usePopup } from './usePopup'
 export { useApi } from './useApi'
 export { useEvents } from './useEvents'
-export { useFormBuilder } from './useFormBuilder'
+export {
+  useFormBuilder,
+  FieldPresets,
+  RulePresets,
+  FormUtils,
+  defineForm
+} from './useFormBuilder'
 export { useFormEngine } from './useFormEngine'
 export { useFormContext } from './useFormContext'
 
-export type {
-  UseFormOptions,
-  UseFormReturn,
-  UseFieldOptions,
-  UseFieldReturn,
-  UseValidationOptions,
-  UseValidationReturn,
-  UseFormValidationOptions,
-  UseFormValidationReturn,
-  UseFormDataOptions,
-  UseFormDataReturn,
-  UseFormConfigOptions,
-  UseFormConfigReturn,
-  UseLayoutOptions,
-  UseLayoutReturn,
-  UsePopupOptions,
-  UsePopupReturn,
-  UseApiOptions,
-  UseApiReturn,
-  UseEventsOptions,
-  UseEventsReturn,
-  UseFormBuilderOptions,
-  UseFormBuilderReturn,
-  UseFormEngineOptions,
-  UseFormEngineReturn,
-  UseFormContextOptions,
-  UseFormContextReturn
-} from './types'
+export type * from './types'
