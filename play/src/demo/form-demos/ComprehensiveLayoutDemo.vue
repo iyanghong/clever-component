@@ -81,6 +81,7 @@ import {
   checkbox
 } from '@clever-component/components/clever-form/src/utils/config-builder'
 
+
 // 当前选择的布局和演示类型
 const currentLayout = ref('grid')
 const currentDemo = ref('nested')
@@ -200,7 +201,13 @@ const gridConfigs = {
   basic: createForm()
     .id('grid-basic')
     .title('网格布局 - 基础示例')
-    .layout(createGrid().cols(2).rowGap(16).colGap(16).children(baseFields))
+    .layout(
+      createGrid()
+        .cols(2)
+        .rowGap(16)
+        .colGap(16)
+        .children(baseFields)
+    )
     .build(),
   nested: createForm()
     .id('grid-nested')
@@ -244,18 +251,10 @@ const gridConfigs = {
                         .rowGap(12)
                         .colGap(12)
                         .children([
-                          input('address.province', '省份')
-                            .placeholder('请输入省份')
-                            .build(),
-                          input('address.city', '城市')
-                            .placeholder('请输入城市')
-                            .build(),
-                          input('address.district', '区县')
-                            .placeholder('请输入区县')
-                            .build(),
-                          textarea('address.detail', '详细地址')
-                            .placeholder('请输入详细地址')
-                            .build()
+                          input('address.province', '省份').placeholder('请输入省份').build(),
+                          input('address.city', '城市').placeholder('请输入城市').build(),
+                          input('address.district', '区县').placeholder('请输入区县').build(),
+                          textarea('address.detail', '详细地址').placeholder('请输入详细地址').build()
                         ])
                         .build()
                     ])
@@ -290,12 +289,8 @@ const gridConfigs = {
                             .build()
                         ])
                         .build(),
-                      input('education.school', '学校名称')
-                        .placeholder('请输入学校名称')
-                        .build(),
-                      input('education.major', '专业')
-                        .placeholder('请输入专业')
-                        .build()
+                      input('education.school', '学校名称').placeholder('请输入学校名称').build(),
+                      input('education.major', '专业').placeholder('请输入专业').build()
                     ])
                     .build()
                 ])
@@ -335,10 +330,7 @@ const gridConfigs = {
                         .direction('column')
                         .gap(16)
                         .children([
-                          radioGroup(
-                            'settings.profileVisibility',
-                            '个人资料可见性'
-                          )
+                          radioGroup('settings.profileVisibility', '个人资料可见性')
                             .options([
                               { label: '公开', value: 'public' },
                               { label: '仅好友', value: 'friends' },
@@ -356,37 +348,38 @@ const gridConfigs = {
                 ])
                 .build()
             ])
-            .build(),
-          createGroup()
-            .title('其他信息')
-            .collapsible(true)
-            .defaultExpanded(false)
-            .children([
-              createFlex()
-                .direction('column')
-                .gap(12)
-                .children([
-                  baseFields[3], // gender
-                  checkboxGroup('hobbies', '兴趣爱好')
-                    .options([
-                      { label: '阅读', value: 'reading' },
-                      { label: '运动', value: 'sports' },
-                      { label: '音乐', value: 'music' },
-                      { label: '旅行', value: 'travel' },
-                      { label: '摄影', value: 'photography' }
-                    ])
-                    .build(),
-                  textarea('description', '个人描述')
-                    .placeholder('请简单介绍一下自己')
-                    .props({ rows: 3 })
-                    .build()
-                ])
-                .build()
-            ])
             .build()
-        ])
-    )
-    .build(),
+       ,
+        createGroup()
+          .title('其他信息')
+          .collapsible(true)
+          .defaultExpanded(false)
+          .children([
+            createFlex()
+              .direction('column')
+              .gap(12)
+              .children([
+                baseFields[3], // gender
+                checkboxGroup('hobbies', '兴趣爱好')
+                  .options([
+                    { label: '阅读', value: 'reading' },
+                    { label: '运动', value: 'sports' },
+                    { label: '音乐', value: 'music' },
+                    { label: '旅行', value: 'travel' },
+                    { label: '摄影', value: 'photography' }
+                  ])
+                  .build(),
+                textarea('description', '个人描述')
+                  .placeholder('请简单介绍一下自己')
+                  .props({ rows: 3 })
+                  .build()
+              ])
+              .build()
+          ])
+          .build()
+      ])
+     )
+     .build(),
   validation: {
     id: 'grid-validation',
     title: '网格布局 - 带验证',
@@ -403,7 +396,12 @@ const flexConfigs = {
   basic: createForm()
     .id('flex-basic')
     .title('弹性布局 - 基础示例')
-    .layout(createFlex().direction('column').gap(16).children(baseFields))
+    .layout(
+      createFlex()
+        .direction('column')
+        .gap(16)
+        .children(baseFields)
+    )
     .build(),
   nested: createForm()
     .id('flex-nested')
@@ -483,7 +481,7 @@ const flexConfigs = {
                   createFlex()
                     .direction('row')
                     .gap(20)
-                    .wrap('wrap')
+                    .wrap(true)
                     .children([
                       checkboxGroup('hobbies', '兴趣爱好')
                         .options([
@@ -543,11 +541,8 @@ const flexConfigs = {
                     .build()
                 ])
                 .build()
-            ])
-            .build()
-        ])
-        .build()
-    ),
+            ]).build()
+  },
   validation: {
     id: 'flex-validation',
     title: '弹性布局 - 带验证',
@@ -555,8 +550,8 @@ const flexConfigs = {
       type: 'flex' as const,
       props: { direction: 'column', gap: 16 },
       children: validationFields
-    }
   }
+}
 }
 
 // 标签页布局配置
@@ -688,77 +683,77 @@ const tabsConfigs = {
                         .placeholder('请输入学校名称')
                         .build(),
                       input('education.major', '专业')
-                        .placeholder('请输入专业')
-                        .build()
-                    ])
-                    .build()
-                ])
-                .build()
-            ])
-            .addStep('技能证书', [
-              createCard()
-                .title('专业技能')
-                .bordered(true)
-                .children([
-                  createGrid()
-                    .cols(1)
-                    .rowGap(12)
-                    .children([
-                      checkboxGroup('skills', '技能列表')
-                        .options([
-                          { label: 'JavaScript', value: 'javascript' },
-                          { label: 'Vue.js', value: 'vue' },
-                          { label: 'React', value: 'react' },
-                          { label: 'Node.js', value: 'nodejs' },
-                          { label: 'Python', value: 'python' }
-                        ])
-                        .build(),
-                      textarea('certificates', '证书描述')
-                        .placeholder('请描述您的专业证书')
-                        .props({ rows: 3 })
-                        .build()
-                    ])
-                    .build()
-                ])
-                .build()
-            ])
-            .build()
-        ])
-        .addTab('preferences', '个人偏好', [
-          createFlex()
-            .direction('column')
-            .gap(20)
-            .children([
-              createGroup()
-                .title('兴趣爱好')
-                .collapsible(true)
-                .defaultExpanded(true)
-                .children([
-                  createTabs()
-                    .type('segment')
-                    .placement('top')
-                    .addTab('hobbies', '爱好', [
-                      createInline()
-                        .gap(16)
-                        .wrap(true)
-                        .children([
-                          checkboxGroup('hobbies', '兴趣爱好')
-                            .options([
-                              { label: '阅读', value: 'reading' },
-                              { label: '运动', value: 'sports' },
-                              { label: '音乐', value: 'music' },
-                              { label: '旅行', value: 'travel' },
-                              { label: '摄影', value: 'photography' }
-                            ])
-                            .build()
-                        ])
-                        .build()
-                    ])
-                    .addTab('lifestyle', '生活方式', [
-                      createVertical()
-                        .gap(16)
-                        .children([
-                          radioGroup('lifestyle.workStyle', '工作方式')
+                         .placeholder('请输入专业')
+                         .build()
+                     ])
+                     .build()
+                 ])
+                 .build()
+             ])
+             .addStep('技能证书', [
+               createCard()
+                 .title('专业技能')
+                 .bordered(true)
+                 .children([
+                   createGrid()
+                     .cols(1)
+                     .rowGap(12)
+                     .children([
+                       checkboxGroup('skills', '技能列表')
+                         .options([
+                           { label: 'JavaScript', value: 'javascript' },
+                           { label: 'Vue.js', value: 'vue' },
+                           { label: 'React', value: 'react' },
+                           { label: 'Node.js', value: 'nodejs' },
+                           { label: 'Python', value: 'python' }
+                         ])
+                         .build(),
+                       textarea('certificates', '证书描述')
+                         .placeholder('请描述您的专业证书')
+                         .props({ rows: 3 })
+                         .build()
+                     ])
+                     .build()
+                 ])
+                 .build()
+             ])
+             .build()
+         ])
+       .addTab('preferences', '个人偏好', [
+         createFlex()
+           .direction('column')
+           .gap(20)
+           .children([
+             createGroup()
+               .title('兴趣爱好')
+               .collapsible(true)
+               .defaultExpanded(true)
+               .children([
+                 createTabs()
+                   .type('segment')
+                   .placement('top')
+                   .addTab('hobbies', '爱好', [
+                     createInline()
+                       .gap(16)
+                       .wrap(true)
+                       .children([
+                         checkboxGroup('hobbies', '兴趣爱好')
+                           .options([
+                             { label: '阅读', value: 'reading' },
+                             { label: '运动', value: 'sports' },
+                             { label: '音乐', value: 'music' },
+                             { label: '旅行', value: 'travel' },
+                             { label: '摄影', value: 'photography' }
+                           ])
+                           .build()
+                       ])
+                       .build()
+                   ])
+                   .addTab('lifestyle', '生活方式', [
+                     createVertical()
+                       .gap(16)
+                       .children([
+                         radioGroup('lifestyle.workStyle', '工作方式')
                             .options([
                               { label: '远程工作', value: 'remote' },
                               { label: '办公室工作', value: 'office' },
@@ -800,18 +795,17 @@ const tabsConfigs = {
             ])
             .build()
         ])
-        .build()
-    ),
+    .build(),
   validation: {
-    id: 'tabs-validation',
-    title: '标签页布局 - 带验证',
-    layout: createTabs()
-      .type('line')
-      .placement('top')
-      .addTab('basic', '基本信息', validationFields.slice(0, 2))
-      .addTab('contact', '联系方式', validationFields.slice(2))
-      .build()
-  }
+     id: 'tabs-validation',
+     title: '标签页布局 - 带验证',
+     layout: createTabs()
+       .type('line')
+       .placement('top')
+       .addTab('basic', '基本信息', validationFields.slice(0, 2))
+       .addTab('contact', '联系方式', validationFields.slice(2))
+       .build()
+   }
 }
 
 // 分组布局配置
@@ -843,7 +837,7 @@ const groupConfigs = {
               .placement('top')
               .addTab('basic', '基本资料', [
                 createCard()
-                  .title('个人基本信息')
+                  .header('个人基本信息')
                   .bordered(false)
                   .children([
                     createGrid()
@@ -857,51 +851,54 @@ const groupConfigs = {
               ])
               .addTab('contact', '联系方式', [
                 createFlex()
-                  .direction('column')
-                  .gap(16)
-                  .children([
-                    createGroup()
-                      .title('主要联系方式')
-                      .collapsible(true)
-                      .defaultExpanded(true)
-                      .children([
-                        createInline()
-                          .gap(16)
-                          .children([
-                            input('contact.phone', '手机号码')
-                              .placeholder('请输入手机号码')
-                              .build(),
-                            input('contact.email', '邮箱地址')
-                              .placeholder('请输入邮箱地址')
-                              .build()
-                          ])
-                          .build()
-                      ])
-                      .build(),
-                    createGroup()
-                      .title('备用联系方式')
-                      .collapsible(true)
-                      .defaultExpanded(false)
-                      .children([
-                        createVertical()
-                          .gap(12)
-                          .children([
-                            input('contact.alternatePhone', '备用电话')
-                              .placeholder('请输入备用电话')
-                              .build(),
-                            input('contact.wechat', '微信号')
-                              .placeholder('请输入微信号')
-                              .build()
-                          ])
-                          .build()
-                      ])
-                      .build()
-                  ])
-                  .build()
-              ])
-              .build()
-          ])
-          .build(),
+                   .direction('column')
+                   .gap(16)
+                   .children([
+                     createGroup()
+                       .title('主要联系方式')
+                       .collapsible(true)
+                       .defaultExpanded(true)
+                       .children([
+                         createInline()
+                           .gap(16)
+                           .children([
+                             input('contact.phone', '手机号码')
+                               .placeholder('请输入手机号码')
+                               .build(),
+                             input('contact.email', '邮箱地址')
+                               .placeholder('请输入邮箱地址')
+                               .build()
+                           ])
+                           .build()
+                       ])
+                       .build(),
+                     createGroup()
+                       .title('备用联系方式')
+                       .collapsible(true)
+                       .defaultExpanded(false)
+                       .children([
+                         createVertical()
+                           .gap(12)
+                           .children([
+                             input('contact.alternatePhone', '备用电话')
+                               .placeholder('请输入备用电话')
+                               .build(),
+                             input('contact.wechat', '微信号')
+                               .placeholder('请输入微信号')
+                               .build()
+                           ])
+                           .build()
+                       ])
+                       .build()
+                   ])
+                   .build()
+               ])
+               .build()
+           ])
+           .build()
+         ])
+         .build()
+        },
         createGroup()
           .title('详细信息组')
           .collapsible(true)
@@ -940,136 +937,139 @@ const groupConfigs = {
                       .gap(16)
                       .children([
                         input('address.district', '区/县')
-                          .placeholder('请输入区/县')
-                          .build(),
-                        textarea('address.street', '街道地址')
-                          .placeholder('请输入详细街道地址')
-                          .props({ rows: 2 })
-                          .build()
-                      ])
-                      .build()
-                  ])
-                  .build()
-              ])
-              .addPanel('work', '工作信息', [
-                createTabs()
-                  .type('line')
-                  .placement('left')
-                  .addTab('current-job', '当前工作', [
-                    createCard()
-                      .title('当前职位信息')
-                      .bordered(true)
-                      .children([
-                        createGroup()
-                          .title('职位详情')
-                          .collapsible(false)
-                          .children([
-                            createGrid()
-                              .cols(2)
-                              .rowGap(16)
-                              .colGap(16)
-                              .children([
-                                input('work.company', '公司名称')
-                                  .placeholder('请输入公司名称')
-                                  .build(),
-                                input('work.position', '职位')
-                                  .placeholder('请输入职位')
-                                  .build(),
-                                input('work.department', '部门')
-                                  .placeholder('请输入部门')
-                                  .build(),
-                                datePicker('work.startDate', '入职时间')
-                                  .props({ type: 'date' })
-                                  .build()
-                              ])
-                              .build()
-                          ])
-                          .build()
-                      ])
-                      .build()
-                  ])
-                  .addTab('experience', '工作经历', [
-                    createFlex()
-                      .direction('column')
-                      .gap(20)
-                      .children([
-                        createGroup()
-                          .title('工作技能')
-                          .collapsible(true)
-                          .defaultExpanded(true)
-                          .children([
-                            createInline()
-                              .gap(16)
-                              .wrap(true)
-                              .children([
-                                checkboxGroup('work.skills', '专业技能')
-                                  .options([
-                                    { label: '前端开发', value: 'frontend' },
-                                    { label: '后端开发', value: 'backend' },
-                                    { label: '全栈开发', value: 'fullstack' },
-                                    { label: '移动开发', value: 'mobile' },
-                                    { label: '数据分析', value: 'data' }
-                                  ])
-                                  .build()
-                              ])
-                              .build()
-                          ])
-                          .build(),
-                        createGroup()
-                          .title('工作描述')
-                          .collapsible(true)
-                          .defaultExpanded(false)
-                          .children([
-                            createVertical()
-                              .gap(16)
-                              .children([
-                                textarea('work.description', '工作内容')
-                                  .placeholder('请描述您的主要工作内容')
-                                  .props({ rows: 4 })
-                                  .build(),
-                                textarea('work.achievements', '主要成就')
-                                  .placeholder('请描述您的主要工作成就')
-                                  .props({ rows: 3 })
-                                  .build()
-                              ])
-                              .build()
-                          ])
-                          .build()
-                      ])
-                      .build()
-                  ])
-                  .build()
-              ])
-              .addPanel('other', '其他信息', [
-                createCard()
-                  .title('补充信息')
-                  .bordered(true)
-                  .children([
-                    createFlex()
-                      .direction('column')
-                      .gap(16)
-                      .children([
-                        textarea('other.notes', '备注信息')
-                          .placeholder('请输入其他需要说明的信息')
-                          .props({ rows: 3 })
-                          .build(),
-                        radioGroup('other.privacy', '隐私设置')
-                          .options([
-                            { label: '公开', value: 'public' },
-                            { label: '仅好友可见', value: 'friends' },
-                            { label: '私密', value: 'private' }
-                          ])
-                          .build()
-                      ])
-                      .build()
-                  ])
-                  .build()
-              ])
-              .build()
-          ])
-          .build()
-      ])
-      .build()
+                           .placeholder('请输入区/县')
+                           .build(),
+                         textarea('address.street', '街道地址')
+                           .placeholder('请输入详细街道地址')
+                           .props({ rows: 2 })
+                           .build()
+                       ])
+                       .build()
+                   ])
+                   .build()
+               ])
+               .addPanel('work', '工作信息', [
+                 createTabs()
+                   .type('line')
+                   .placement('left')
+                   .addTab('current-job', '当前工作', [
+                     createCard()
+                       .header('当前职位信息')
+                       .bordered(true)
+                       .children([
+                         createGroup()
+                           .title('职位详情')
+                           .collapsible(false)
+                           .children([
+                             createGrid()
+                               .cols(2)
+                               .rowGap(16)
+                               .colGap(16)
+                               .children([
+                                 input('work.company', '公司名称')
+                                   .placeholder('请输入公司名称')
+                                   .build(),
+                                 input('work.position', '职位')
+                                   .placeholder('请输入职位')
+                                   .build(),
+                                 input('work.department', '部门')
+                                    .placeholder('请输入部门')
+                                    .build(),
+                                  datePicker('work.startDate', '入职时间')
+                                    .props({ type: 'date' })
+                                    .build()
+                                ])
+                                .build()
+                            ])
+                            .build()
+                        ])
+                        .build()
+                    ])
+                    .addTab('experience', '工作经历', [
+                      createFlex()
+                        .direction('column')
+                        .gap(20)
+                        .children([
+                          createGroup()
+                            .title('工作技能')
+                            .collapsible(true)
+                            .defaultExpanded(true)
+                            .children([
+                              createInline()
+                                .gap(16)
+                                .wrap(true)
+                                .children([
+                                  checkboxGroup('work.skills', '专业技能')
+                                    .options([
+                                      { label: '前端开发', value: 'frontend' },
+                                      { label: '后端开发', value: 'backend' },
+                                      { label: '全栈开发', value: 'fullstack' },
+                                      { label: '移动开发', value: 'mobile' },
+                                      { label: '数据分析', value: 'data' }
+                                    ])
+                                    .build()
+                                ])
+                                .build()
+                            ])
+                            .build(),
+                          createGroup()
+                            .title('工作描述')
+                            .collapsible(true)
+                            .defaultExpanded(false)
+                            .children([
+                              createVertical()
+                                 .gap(16)
+                                 .children([
+                                   textarea('work.description', '工作内容')
+                                     .placeholder('请描述您的主要工作内容')
+                                     .props({ rows: 4 })
+                                     .build(),
+                                   textarea('work.achievements', '主要成就')
+                                     .placeholder('请描述您的主要工作成就')
+                                     .props({ rows: 3 })
+                                     .build()
+                                 ])
+                                 .build()
+                             ])
+                             .build()
+                         ])
+                         .build()
+                     ])
+                     .build()
+                 ])
+                 .addPanel('other', '其他信息', [
+                   createCard()
+                     .header('补充信息')
+                     .bordered(true)
+                     .children([
+                       createFlex()
+                         .direction('column')
+                         .gap(16)
+                         .children([
+                           textarea('other.notes', '备注信息')
+                             .placeholder('请输入其他需要说明的信息')
+                             .props({ rows: 3 })
+                             .build(),
+                           radioGroup('other.privacy', '隐私设置')
+                             .options([
+                               { label: '公开', value: 'public' },
+                               { label: '仅好友可见', value: 'friends' },
+                               { label: '私密', value: 'private' }
+                             ])
+                             .build()
+                         ])
+                         .build()
+                     ])
+                     .build()
+                 ])
+                 .build()
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
   },
   validation: {
     id: 'group-validation',
@@ -1092,7 +1092,7 @@ const cardConfigs = {
     id: 'card-basic',
     title: '卡片布局 - 基础示例',
     layout: createCard()
-      .title('用户信息卡片')
+      .header('用户信息卡片')
       .bordered(true)
       .children(baseFields)
       .build()
@@ -1104,12 +1104,12 @@ const cardConfigs = {
       .gap(16)
       .children([
         createCard()
-          .title('基本信息')
+          .header('基本信息')
           .bordered(true)
           .children(baseFields.slice(0, 2))
           .build(),
         createCard()
-          .title('联系方式')
+          .header('联系方式')
           .bordered(true)
           .children(baseFields.slice(2))
           .build()
@@ -1120,7 +1120,7 @@ const cardConfigs = {
     id: 'card-validation',
     title: '卡片布局 - 带验证',
     layout: createCard()
-      .title('用户信息（必填）')
+      .header('用户信息（必填）')
       .bordered(true)
       .children(validationFields)
       .build()
@@ -1186,7 +1186,10 @@ const stepsConfigs = {
           .build()
       ])
       .addStep('第二步', [
-        createVertical().gap(12).children(baseFields.slice(2)).build()
+        createVertical()
+          .gap(12)
+          .children(baseFields.slice(2))
+          .build()
       ])
       .build()
   },
@@ -1263,27 +1266,33 @@ const verticalConfigs = {
         createGroup()
           .title('基本信息')
           .children([
-            createVertical().gap(12).children(baseFields.slice(0, 2)).build()
-          ])
-          .build(),
-        createGroup()
-          .title('联系方式')
-          .children([
-            createVertical().gap(12).children(baseFields.slice(2)).build()
-          ])
-          .build()
-      ])
-      .build()
-  },
-  validation: {
-    id: 'vertical-validation',
-    title: '垂直布局 - 带验证',
-    layout: createVertical()
-      .gap(16)
-      .align('stretch')
-      .children(validationFields)
-      .build()
-  }
+            createVertical()
+               .gap(12)
+               .children(baseFields.slice(0, 2))
+               .build()
+           ])
+           .build(),
+         createGroup()
+           .title('联系方式')
+           .children([
+             createVertical()
+               .gap(12)
+               .children(baseFields.slice(2))
+               .build()
+           ])
+           .build()
+       ])
+       .build()
+   },
+   validation: {
+     id: 'vertical-validation',
+     title: '垂直布局 - 带验证',
+     layout: createVertical()
+       .gap(16)
+       .align('stretch')
+       .children(validationFields)
+       .build()
+   }
 }
 
 // 所有配置
@@ -1301,11 +1310,8 @@ const allConfigs = {
 
 // 当前表单配置
 const currentFormConfig = computed(() => {
-  const layoutConfigs =
-    allConfigs[currentLayout.value as keyof typeof allConfigs]
-  return layoutConfigs[
-    currentDemo.value as keyof typeof layoutConfigs
-  ] as FormConfig
+  const layoutConfigs = allConfigs[currentLayout.value as keyof typeof allConfigs]
+  return layoutConfigs[currentDemo.value as keyof typeof layoutConfigs] as FormConfig
 })
 
 // 当前标题
